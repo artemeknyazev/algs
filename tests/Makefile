@@ -1,25 +1,38 @@
+# --- DEVELOPER AREA START ---
+
+# We use nested namespaces for convenience
+CXXFLAGS += -std=c++1z
+
+# Include project-specific files
+CPPFLAGS += -I ../include
+
+# Where to find library code
+LIB_DIR = ../include/algs
+
+# Where to find test scenarios
+SCENARIOS_DIR = scenarios
+
+# Where to put intermediate files and test executables
+BUILD_DIR = build
+
+# Add test targets here
+TESTS = sort_selection
+
+# --- DEVELOPER AREA END ---
+
+# --- GOOGLE TEST AREA START; DO NOT TOUCH ---
+
 # Points to the root of Google Test, relative to where this file is.
 # Remember to tweak this if you move this file.
 GTEST_DIR = ../submodules/googletest/googletest
-
-# Where to find user code.
-LIB_DIR = ../include/algs
-SCENARIOS_DIR = scenarios
-BUILD_DIR = build
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
 # the compiler doesn't generate warnings in Google Test headers.
 CPPFLAGS += -isystem $(GTEST_DIR)/include
 
-# Include project-specific files
-CPPFLAGS += -I ../include
-
 # Flags passed to the C++ compiler.
-CXXFLAGS += -g -Wall -Wextra -pthread -std=c++1z
-
-# Add test targets here
-TESTS = sort_selection
+CXXFLAGS += -g -Wall -Wextra -pthread
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -59,7 +72,13 @@ gtest.a : gtest-all.o
 gtest_main.a : gtest-all.o gtest_main.o
 	$(AR) $(ARFLAGS) $(BUILD_DIR)/$@ $(BUILD_DIR)/gtest-all.o $(BUILD_DIR)/gtest_main.o
 
-# Add tests here; note: gtest_main.a defines main, gtest.a don't
+# --- GOOGLE TEST AREA END; DO NOT TOUCH ---
+
+# --- DEVELOPER AREA START ---
+# Add tests here
+# note: gtest_main.a defines main, gtest.a don't
+# note: each target depends on library header (and possibly cpp file),
+#       scenario cpp file and $(GTEST_HEADERS)
 
 sort_selection.o: $(LIB_DIR)/sort/selection.hpp \
 				  $(SCENARIOS_DIR)/sort/selection.cpp \
