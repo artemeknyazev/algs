@@ -1,51 +1,21 @@
 #define TEST
+//#define DEBUG_PRINT
 
 #include <gtest/gtest.h>
+#include <iostream>
+#include <vector>
+#include <list>
+#include <deque>
+
 #include "algs/sort/selection.hpp"
 #include "algs/sort/insertion.hpp"
 #include "algs/sort/shell.hpp"
+#include "../helpers/test_sort_on_container.hpp"
 
 namespace {
-    using namespace algs::sort;
-
-    TEST(Sort, SelectionSort) {
-        std::vector<int> in = { 5, 4, 3, 2, 1 };
-        std::vector<int> out = in;
-        std::sort(out.begin(), out.end());
-
-        selection::sort(in.begin(), in.end());
-        ASSERT_TRUE(std::is_sorted(in.begin(), in.end()));
-        ASSERT_EQ(in, out);
-    }
-
-    TEST(Sort, SelectionSortStl) {
-        std::vector<int> in = { 5, 4, 3, 2, 1 };
-        std::vector<int> out = in;
-        std::sort(out.begin(), out.end());
-
-        selection::sort_stl(in.begin(), in.end());
-        ASSERT_TRUE(std::is_sorted(in.begin(), in.end()));
-        ASSERT_EQ(in, out);
-    }
-
-    TEST(Sort, InsertionSort) {
-        std::vector<int> in = { 5, 4, 3, 2, 1 };
-        std::vector<int> out = in;
-        std::sort(out.begin(), out.end());
-
-        insertion::sort(in.begin(), in.end());
-        ASSERT_TRUE(std::is_sorted(in.begin(), in.end()));
-        ASSERT_EQ(in, out);
-    }
-
-    TEST(Sort, ShellSort) {
-        std::vector<int> in = { 5, 4, 3, 2, 1 };
-        std::vector<int> out = in;
-        std::sort(out.begin(), out.end());
-
-        shell::sort(in.begin(), in.end());
-        ASSERT_TRUE(std::is_sorted(in.begin(), in.end()));
-        ASSERT_EQ(in, out);
-    }
+    REGISTER_TESTS(Sort, SelectionSort, algs::sort::selection::sort)
+    REGISTER_TESTS(Sort, SelectionSortSTL, algs::sort::selection::sort_stl)
+    REGISTER_TESTS(Sort, InsertionSort, algs::sort::insertion::sort)
+    REGISTER_TESTS(Sort, ShellSort, algs::sort::shell::sort)
 }; // namespace
 
