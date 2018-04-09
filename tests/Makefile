@@ -103,3 +103,15 @@ sort_insertion : sort_insertion.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread \
 		$(BUILD_DIR)/sort_insertion.o $(BUILD_DIR)/gtest_main.a \
 		-o $(BUILD_DIR)/$@
+
+sort_shell.o: $(LIB_DIR)/sort/shell.hpp \
+		   	  $(SCENARIOS_DIR)/sort/shell.cpp \
+		   	  $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) \
+		-c $(SCENARIOS_DIR)/sort/shell.cpp \
+		-o $(BUILD_DIR)/sort_shell.o
+
+sort_shell : sort_shell.o gtest_main.a
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread \
+		$(BUILD_DIR)/sort_shell.o $(BUILD_DIR)/gtest_main.a \
+		-o $(BUILD_DIR)/$@
