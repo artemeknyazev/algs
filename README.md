@@ -15,7 +15,7 @@ Uses [`googletest`](https://github.com/google/googletest) for testing as a submo
 ```
 > cd algs && make
 ```
-This command builds all possible tests. Look at the `TESTS` property in the `tests/Makefile` for all available ones. Output executables are plaed into `tests/build` under the same names.
+This command builds all possible tests. Look at the `TESTS` property in the `tests/Makefile` for all available ones. Output executables are placed into `tests/build` under the same names.
 
 # Benchmarking
 

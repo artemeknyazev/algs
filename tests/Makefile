@@ -16,7 +16,7 @@ SCENARIOS_DIR = scenarios
 BUILD_DIR = build
 
 # Add test targets here
-TESTS = sort_selection
+TESTS = sort_selection sort_insertion
 
 # --- DEVELOPER AREA END ---
 
@@ -44,7 +44,7 @@ GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
 all : $(TESTS)
 
 clean :
-	rm -f $(TESTS) gtest.a gtest_main.a *.o
+	rm -rf $(BUILD_DIR) && mkdir -p $(BUILD_DIR) && touch $(BUILD_DIR)/.gitignore
 
 # Builds gtest.a and gtest_main.a.
 
@@ -83,7 +83,23 @@ gtest_main.a : gtest-all.o gtest_main.o
 sort_selection.o: $(LIB_DIR)/sort/selection.hpp \
 				  $(SCENARIOS_DIR)/sort/selection.cpp \
 				  $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(SCENARIOS_DIR)/sort/selection.cpp -o $(BUILD_DIR)/sort_selection.o
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) \
+		-c $(SCENARIOS_DIR)/sort/selection.cpp \
+		-o $(BUILD_DIR)/sort_selection.o
 
 sort_selection : sort_selection.o gtest_main.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $(BUILD_DIR)/sort_selection.o $(BUILD_DIR)/gtest_main.a -o $(BUILD_DIR)/$@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread \
+		$(BUILD_DIR)/sort_selection.o $(BUILD_DIR)/gtest_main.a \
+		-o $(BUILD_DIR)/$@
+
+sort_insertion.o: $(LIB_DIR)/sort/insertion.hpp \
+				  $(SCENARIOS_DIR)/sort/insertion.cpp \
+				  $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) \
+		-c $(SCENARIOS_DIR)/sort/insertion.cpp \
+		-o $(BUILD_DIR)/sort_insertion.o
+
+sort_insertion : sort_insertion.o gtest_main.a
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread \
+		$(BUILD_DIR)/sort_insertion.o $(BUILD_DIR)/gtest_main.a \
+		-o $(BUILD_DIR)/$@
