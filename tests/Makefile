@@ -1,7 +1,7 @@
 # --- DEVELOPER AREA START ---
 
 # We use nested namespaces for convenience
-CXXFLAGS += -std=c++1z
+CXXFLAGS += -g -std=c++1z -Wall -Wextra -lpthread
 
 # Include project-specific files
 CPPFLAGS += -I ../include
@@ -26,13 +26,12 @@ GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
 
 CPPFLAGS += -isystem $(GTEST_DIR)/include
 
-CXXFLAGS += -g -Wall -Wextra -pthread
-
+# note: 2>&1 - pipe stderr to stdout, >/dev/null - pipe stdout to /dev/null
 gtest.a :
-	$(MAKE) -f Makefile_googletest gtest.a
+	@$(MAKE) -sf Makefile.googletest gtest.a 2>&1 >/dev/null
 
 gtest_main.a :
-	$(MAKE) -f Makefile_googletest gtest_main.a
+	@$(MAKE) -sf Makefile.googletest gtest_main.a 2>&1 >/dev/null
 
 # --- GOOGLE TEST AREA END; DO NOT TOUCH ---
 
@@ -43,20 +42,20 @@ sort.o : $(SCENARIOS_DIR)/sort.cpp \
 	     $(LIB_DIR)/sort/insertion.hpp \
 	     $(LIB_DIR)/sort/shell.hpp \
 		 $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) \
+	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) \
 		-c $(filter %.cpp,$^) \
 		-o $(BUILD_DIR)/$@
 
 # note: gtest_main.a defines main, gtest.a don't
 test : sort.o gtest_main.a
-	cd $(BUILD_DIR) && \
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -o $@ $^
+	@cd $(BUILD_DIR) && \
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $^
 
 run : test
-	./build/test
+	@./build/test
 
 clean :
-	rm -rf $(BUILD_DIR) && mkdir -p $(BUILD_DIR) && touch $(BUILD_DIR)/.gitignore
+	@rm -rf $(BUILD_DIR) && mkdir -p $(BUILD_DIR) && touch $(BUILD_DIR)/.gitignore
 
 all : run
 
