@@ -103,7 +103,7 @@ namespace {
 
                 // produce test data
                 algs::sort::merge::inplace_merge(cont.begin(), cont_mid, cont.end());
-                
+
                 // check
                 ASSERT_TRUE(std::equal(cont.begin(), cont.end(), reference.begin(), reference.end()));
             }

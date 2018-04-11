@@ -1,6 +1,6 @@
 namespace algs::sort::merge {
     /**
-     * Merges two collections into sorted output one.
+     * Merges two collections into a sorted output one.
      * NOTE: Requires input collections to be pre-sorted
      **/
     template<
@@ -33,17 +33,15 @@ namespace algs::sort::merge {
             }
             ++it_out;
         }
-        // NOTE: 1 out-of-loop check for exhausted part, then 
-        //       1 in-loop for elements of non-exxhausted one
-        // if (it_left != left_end)
-        //     it_out = std::copy(it_left, left_end, it_out);
+        // NOTE: 1 out-of-loop check for the exhausted part, then
+        //       1 in-loop for elements of the non-exhausted one
+        // it_out = std::copy(it_left, left_end, it_out);
         while (it_left != left_end) {
             *it_out = *it_left;
             ++it_left;
             ++it_out;
         }
-        // if (it_right != right_end)
-        //     it_out = std::copy(it_right, right_end, it_out);
+        // it_out = std::copy(it_right, right_end, it_out);
         while (it_right != right_end) {
             *it_out = *it_right;
             ++it_right;
@@ -53,8 +51,8 @@ namespace algs::sort::merge {
     }
 
     /**
-     * Merges sorted left and right parts of the input 
-     * collection into sorted output one.
+     * Merges left and right parts of an input
+     * collection into a sorted output one.
      * NOTE: Requires both parts to be pre-sorted
      **/
     template<
@@ -72,10 +70,10 @@ namespace algs::sort::merge {
     }
 
     /**
-     * Merge sorted left and right parts of the input 
-     * collection throught temporary into the original one.
-     * NOTE: Requires tmp collection to be of size at least 
-     * equal to std::distance(left, right).
+     * Merges left and right parts of an input collection
+     * through temporary into the original one.
+     * NOTE: Requires tmp collection to be of a size
+     * at least equal to std::distance(left, right).
      * NOTE: Requires both parts to be pre-sorted
      **/
     template<
@@ -97,7 +95,7 @@ namespace algs::sort::merge {
         auto tmp_end = std::copy(mid, end, tmp_mid);
         auto tmp_left = tmp_begin, tmp_right = tmp_mid;
         // NOTE: Sedgewicks' code ported from Java example
-        // NOTE: 4 check if both not exhausted, 3 checks if 
+        // NOTE: 4 checks if both not exhausted, 3 checks if
         //       right exhausted, 2 checks if left
         // TODO: replace with merge(tmp_begin, tmp_mid, tmp_right, begin)
         //       and bench
@@ -119,9 +117,9 @@ namespace algs::sort::merge {
     }
 
     /**
-     * Merges two collection in-place. Left collection will contain elements
+     * Merges two collections in-place. Left collection will contain elements
      * less than or equal to the first element of the right collection. Both
-     * collection will stay sorted.
+     * collections will stay sorted.
      * NOTE: Requires both collections to be pre-sorted
      **/
     template<
@@ -140,8 +138,8 @@ namespace algs::sort::merge {
 
         // scan left collection left-to-right
         for (auto it_left = left_begin; it_left != left_end; ++it_left) {
-            // if found element gt than the first one in second collection
-            if (*right_begin < *it_left) { 
+            // if found element gt than the first one of the second collection
+            if (*right_begin < *it_left) {
                 // swap them and bubble-up in the right collection
                 // until right one is sorted again
                 std::iter_swap(it_left, right_begin);
@@ -154,9 +152,9 @@ namespace algs::sort::merge {
     }
 
     /**
-     * Merges two parts of the collection. Left part will contain elements
+     * Merges two parts of a collection. Left part will contain elements
      * less than or equal to the first element of the right part.
-     * NOTE: Requires both parts  to be pre-sorted
+     * NOTE: Requires both parts to be pre-sorted
      **/
     template<
         typename ForwardIterator
@@ -171,7 +169,7 @@ namespace algs::sort::merge {
     }
 
     /**
-     * Implementation of recursive merge sort. DO NOT USE DIRECTLY
+     * Implementation of a recursive merge sort. DO NOT USE DIRECTLY
      **/
     template<
         typename ForwardIterator,
