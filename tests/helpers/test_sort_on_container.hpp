@@ -1,5 +1,12 @@
 #include <random>
 
+template<typename T>
+std::ostream& operator<<(std::ostream& out, const std::vector<T> v) {
+    for (const auto& it : v)
+        out << it << ' ';
+    return out;
+}
+
 const size_t MAX_CONTAINER_SIZE = 1<<12;
 const std::vector<size_t> TEST_CONTAINER_SIZES = {
     4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 

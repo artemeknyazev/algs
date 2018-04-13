@@ -11,3 +11,4 @@
 #include "./sort/shell.cpp"
 #include "./sort/merge.cpp"
 #include "./sort/heap.cpp"
+#include "./sort/quicksort.cpp"
