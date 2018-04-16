@@ -38,16 +38,19 @@ gtest_main.a :
 # --- DEVELOPER AREA START (add tests here) ---
 
 sort.o : $(SCENARIOS_DIR)/sort.cpp \
-	     $(LIB_DIR)/sort/selection.hpp \
-	     $(LIB_DIR)/sort/insertion.hpp \
-	     $(LIB_DIR)/sort/shell.hpp \
+		 $(GTEST_HEADERS)
+	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) \
+		-c $(filter %.cpp,$^) \
+		-o $(BUILD_DIR)/$@
+
+tree.o : $(SCENARIOS_DIR)/tree.cpp \
 		 $(GTEST_HEADERS)
 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) \
 		-c $(filter %.cpp,$^) \
 		-o $(BUILD_DIR)/$@
 
 # note: gtest_main.a defines main, gtest.a don't
-test : sort.o gtest_main.a
+test : sort.o tree.o gtest_main.a
 	@cd $(BUILD_DIR) && \
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $^
 
