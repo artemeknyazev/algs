@@ -89,5 +89,25 @@ namespace {
             }
         }
     }
+
+    // TODO: fix this
+    TEST(Sort, Quicksort_Partition_ThreeWay) {
+        return;
+        using algs::sort::quicksort::partition_three_way;
+        using algs::sort::quicksort::is_partitioned_dual_pivot;
+        using Container = std::vector<int>;
+        using value_type = typename Container::value_type;
+        for (auto size : TEST_CONTAINER_SIZES) {
+            for (int i = 0; i < std::max(1., std::log(size)); ++i) {
+                Container v(size);
+                fill_container(v.begin(), v.end(), value_type(0), value_type(size));
+                std::cout << "before: " << v << std::endl;
+                auto part = partition_three_way(v.begin(), v.end());
+                std::cout << "part:   " << (part.first-v.begin()) << " " << (part.second-v.begin()) << std::endl;
+                std::cout << "after:  " << v << std::endl;
+                ASSERT_TRUE(is_partitioned_dual_pivot(v.begin(), part.first, part.second, v.end()));
+            }
+        }
+    }
 }
 

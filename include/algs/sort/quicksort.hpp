@@ -1,7 +1,5 @@
 #include <utility>
 
-// TODO: add 3-way partitioning;
-
 namespace algs::sort::quicksort {
     /**
      * Check if a collection is partitioned around a `pivot` element
@@ -162,6 +160,23 @@ namespace algs::sort::quicksort {
         std::iter_swap(p, l);
         std::iter_swap(q, g);
         return std::make_pair(l, g);
+    }
+
+    // TODO: implement this
+    /**
+     * Partition a collection around two pivots
+     * NOTE: Uses first and last elements as pivots
+     * NOTE: New element order: (<p) (p p ... p ... p p)  (p<)
+     **/
+    template<
+        typename RandomAccessIterator
+    >
+    std::pair<RandomAccessIterator, RandomAccessIterator>
+    partition_three_way(
+        RandomAccessIterator begin,
+        RandomAccessIterator end
+    ) {
+        return std::make_pair(begin, end);
     }
 
     /**
