@@ -1,5 +1,9 @@
 namespace algs::tree::bst {
 
+// TODO: iterators instead in_order/in_order_reverse methods
+// TODO: select k-th method
+// TODO: find and operator[] return a reference to a key-value pair
+
 /**
  * Recursive implementation of a binary search tree.
  * NOTE: To simplify code, nearly everything is passed by value
@@ -77,10 +81,9 @@ public:
     }
 
     /**
-     * Find a mapped value for a given key. If a value is not found,
-     * find will return default value for Value type.
-     * NOTE: Maybe should insert (key, default value) pair if not found?
-     * TODO: Should return reference to allow value modification
+     * Find a mapped value for a given key. If the value is not found,
+     * find will return a default value for the Value type.
+     * TODO: Should insert a (key, default value) pair if not found?
      **/
     value_type find(const Key& key) {
         Node *pNode = find(mpRoot, key);
@@ -99,32 +102,6 @@ public:
         throw std::logic_error("not implemented");
     }
 #pragma clang diagnostic pop
-
-    /**
-     * Finds minimal element in a container. If a container is empty,
-     * returns empty key-value pair
-     * TODO: what to do if a container is empty? Throw, assert, return
-     *       fake value (referncing problem?)
-     * TODO: return a reference
-     **/
-    value_type find_min() {
-        Node *pNode = find_min(mpRoot);
-        if (pNode == nullptr)
-            return std::make_pair(Key(), Value());
-        return pNode->mData;
-    }
-
-    /**
-     * Finds maximal element in a container. If a container is empty,
-     * returns empty key-value pair
-     * TODO: same as find_min
-     **/
-    value_type find_max() {
-        Node *pNode = find_max(mpRoot);
-        if (pNode == nullptr)
-            return std::make_pair(Key(), Value());
-        return pNode->mData;
-    }
 
     /**
      * Check if a container contains a value for a given key
@@ -152,29 +129,6 @@ public:
      **/
     size_t size() {
         return size(mpRoot);
-    }
-
-    /**
-     * In order traversal (min to max)
-     **/
-    void in_order(std::vector<value_type>& out) {
-        for (Node *pCurr = find_min(mpRoot); pCurr != nullptr; pCurr = pCurr->next())
-            out.push_back(pCurr->mData);
-    }
-
-    /**
-     * In order reverse traversal (max to min)
-     **/
-    void in_order_reverse(std::vector<value_type>& out) {
-        for (Node *pCurr = find_max(mpRoot); pCurr != nullptr; pCurr = pCurr->prev())
-            out.push_back(pCurr->mData);
-    }
-
-    /**
-     * Print tree contents
-     **/
-    void print(std::ostream& out) {
-        print(out, mpRoot, 0);
     }
 
 protected:
@@ -271,6 +225,32 @@ protected:
             return 1 + size(pNode->mpLeft) + size(pNode->mpRight);
     }
 
+    // ADDITIONAL METHODS
+public:
+    /**
+     * In order traversal (min to max)
+     **/
+    void in_order(std::vector<value_type>& out) {
+        for (Node *pCurr = find_min(mpRoot); pCurr != nullptr; pCurr = pCurr->next())
+            out.push_back(pCurr->mData);
+    }
+
+    /**
+     * In order reverse traversal (max to min)
+     **/
+    void in_order_reverse(std::vector<value_type>& out) {
+        for (Node *pCurr = find_max(mpRoot); pCurr != nullptr; pCurr = pCurr->prev())
+            out.push_back(pCurr->mData);
+    }
+
+    /**
+     * Print tree contents
+     **/
+    void print(std::ostream& out) {
+        print(out, mpRoot, 0);
+    }
+
+protected:
     void print(std::ostream& out, Node *pNode, int depth) {
         if (pNode)
             print(out, pNode->mpRight, depth+1);
