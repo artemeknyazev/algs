@@ -106,73 +106,90 @@ namespace {
     }
 
     TEST(Tree, BST_Recursive_Debug_InOrder) {
-        size_t size = 10;
+        for (size_t size = 16; size <= 1 << 12; size <<= 1) {
+            std::vector<int> base(size);
+            std::generate(base.begin(), base.end(), [n = 0] () mutable { return n++; });
+            std::random_device rd;
+            std::mt19937 g(rd());
+            std::shuffle(base.begin(), base.end(), g);
 
-        std::vector<int> base(size);
-        std::generate(base.begin(), base.end(), [n = 0] () mutable { return n++; });
-        std::random_device rd;
-        std::mt19937 g(rd());
-        std::shuffle(base.begin(), base.end(), g);
+            std::vector<bst::value_type> reference(size);
+            std::transform(base.begin(), base.end(), reference.begin(),
+                [] (int a) { return std::make_pair(a, a+1); });
+            std::sort(reference.begin(), reference.end(),
+                [] (bst::value_type a, bst::value_type b) { return a.first < b.first; });
 
-        std::vector<bst::value_type> reference(size);
-        std::transform(base.begin(), base.end(), reference.begin(),
-            [] (int a) { return std::make_pair(a, a+1); });
-        std::sort(reference.begin(), reference.end(),
-            [] (bst::value_type a, bst::value_type b) { return a.first < b.first; });
+            bst tree;
+            for (const auto& it : base)
+                tree.insert(it, it+1);
 
-        bst tree;
-        for (const auto& it : base)
-            tree.insert(it, it+1);
+            std::vector<bst::value_type> ordered;
+            tree.in_order(ordered);
 
-        std::vector<bst::value_type> ordered;
-        tree.in_order(ordered);
-
-        bool flag = std::equal(ordered.begin(), ordered.end(), reference.begin(), reference.end());
-
-        if (!flag) {
-            std::cout << tree.size() << std::endl;
-            tree.print(std::cout);
-            std::cout << "Base:      "; for (const auto& it : base) std::cout << it << ' '; std::cout << std::endl;
-            std::cout << "Ordered:   "; for (const auto& it : ordered) std::cout << it.first << ' '; std::cout << std::endl;
-            std::cout << "Reference: "; for (const auto& it : reference) std::cout << it.first << ' '; std::cout << std::endl;
+            bool flag = std::equal(ordered.begin(), ordered.end(), reference.begin(), reference.end());
+            ASSERT_TRUE(flag);
         }
-
-        ASSERT_TRUE(flag);
     }
 
     TEST(Tree, BST_Recursive_Debug_InOrderReverse) {
-        size_t size = 10;
+        for (size_t size = 16; size <= 1 << 12; size <<= 1) {
+            std::vector<int> base(size);
+            std::generate(base.begin(), base.end(), [n = 0] () mutable { return n++; });
+            std::random_device rd;
+            std::mt19937 g(rd());
+            std::shuffle(base.begin(), base.end(), g);
 
-        std::vector<int> base(size);
-        std::generate(base.begin(), base.end(), [n = 0] () mutable { return n++; });
-        std::random_device rd;
-        std::mt19937 g(rd());
-        std::shuffle(base.begin(), base.end(), g);
+            std::vector<bst::value_type> reference(size);
+            std::transform(base.begin(), base.end(), reference.begin(),
+                [] (int a) { return std::make_pair(a, a+1); });
+            std::sort(reference.begin(), reference.end(),
+                [] (bst::value_type a, bst::value_type b) { return a.first > b.first; });
 
-        std::vector<bst::value_type> reference(size);
-        std::transform(base.begin(), base.end(), reference.begin(),
-            [] (int a) { return std::make_pair(a, a+1); });
-        std::sort(reference.begin(), reference.end(),
-            [] (bst::value_type a, bst::value_type b) { return a.first > b.first; });
+            bst tree;
+            for (const auto& it : base)
+                tree.insert(it, it+1);
 
-        bst tree;
-        for (const auto& it : base)
-            tree.insert(it, it+1);
+            std::vector<bst::value_type> ordered;
+            tree.in_order_reverse(ordered);
 
-        std::vector<bst::value_type> ordered;
-        tree.in_order_reverse(ordered);
-
-        bool flag = std::equal(ordered.begin(), ordered.end(), reference.begin(), reference.end());
-
-        if (!flag) {
-            std::cout << tree.size() << std::endl;
-            tree.print(std::cout);
-            std::cout << "Base:      "; for (const auto& it : base) std::cout << it << ' '; std::cout << std::endl;
-            std::cout << "Ordered:   "; for (const auto& it : ordered) std::cout << it.first << ' '; std::cout << std::endl;
-            std::cout << "Reference: "; for (const auto& it : reference) std::cout << it.first << ' '; std::cout << std::endl;
+            bool flag = std::equal(ordered.begin(), ordered.end(), reference.begin(), reference.end());
+            ASSERT_TRUE(flag);
         }
+    }
 
-        ASSERT_TRUE(flag);
+    TEST(Tree, BST_Recursive_Remove_Randomized) {
+        for (size_t size = 16; size <= 1 << 12; size <<= 1) {
+            std::vector<int> base(size);
+            std::generate(base.begin(), base.end(), [n = 0] () mutable { return n++; });
+            std::random_device rd;
+            std::mt19937 g(rd());
+            std::shuffle(base.begin(), base.end(), g);
+
+            std::vector<bst::value_type> reference(size);
+            std::transform(base.begin(), base.end(), reference.begin(),
+                [] (int a) { return std::make_pair(a, a+1); });
+            std::sort(reference.begin(), reference.end(),
+                [] (bst::value_type a, bst::value_type b) { return a.first < b.first; });
+
+            bst tree;
+            for (const auto& it : base)
+                tree.insert(it, it+1);
+
+            for (size_t sz = tree.size(); sz; --sz) {
+                std::uniform_int_distribution<> d(0, sz-1);
+                auto pos = d(g);
+                tree.remove(base[pos]);
+                reference.erase(std::find_if(reference.begin(), reference.end(),
+                    [&](const bst::value_type& val) { return val.first == base[pos]; }));
+                base.erase(base.begin() + pos);
+
+                std::vector<bst::value_type> ordered;
+                tree.in_order(ordered);
+
+                bool flag = std::equal(ordered.begin(), ordered.end(), reference.begin(), reference.end());
+                ASSERT_TRUE(flag);
+            }
+        }
     }
 }
 
