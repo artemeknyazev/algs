@@ -10,6 +10,8 @@ namespace {
         ASSERT_EQ(tree.size(), 0);
         ASSERT_FALSE(tree.contains(0));
         ASSERT_EQ(tree.find(0), std::make_pair(0, 0));
+        ASSERT_TRUE(tree.check_links_valid());
+        ASSERT_TRUE(tree.check_is_bst());
     }
 
     TEST(Tree, BST_Recursive_Simple) {
@@ -21,6 +23,8 @@ namespace {
         ASSERT_EQ(tree.find(1), std::make_pair(1, 2));
         ASSERT_FALSE(tree.contains(2));
         ASSERT_FALSE(tree.contains(3));
+        ASSERT_TRUE(tree.check_links_valid());
+        ASSERT_TRUE(tree.check_is_bst());
         tree.insert(2, 4);
         ASSERT_EQ(tree.size(), 2);
         ASSERT_FALSE(tree.contains(0));
@@ -29,6 +33,8 @@ namespace {
         ASSERT_TRUE(tree.contains(2));
         ASSERT_EQ(tree.find(2), std::make_pair(2, 4));
         ASSERT_FALSE(tree.contains(3));
+        ASSERT_TRUE(tree.check_links_valid());
+        ASSERT_TRUE(tree.check_is_bst());
         tree.insert(3, 8);
         ASSERT_EQ(tree.size(), 3);
         ASSERT_FALSE(tree.contains(0));
@@ -38,6 +44,8 @@ namespace {
         ASSERT_EQ(tree.find(2), std::make_pair(2, 4));
         ASSERT_TRUE(tree.contains(3));
         ASSERT_EQ(tree.find(3), std::make_pair(3, 8));
+        ASSERT_TRUE(tree.check_links_valid());
+        ASSERT_TRUE(tree.check_is_bst());
         tree.insert(0, 1);
         ASSERT_TRUE(tree.contains(0));
         ASSERT_EQ(tree.find(0), std::make_pair(0, 1));
@@ -47,6 +55,8 @@ namespace {
         ASSERT_EQ(tree.find(2), std::make_pair(2, 4));
         ASSERT_TRUE(tree.contains(3));
         ASSERT_EQ(tree.find(3), std::make_pair(3, 8));
+        ASSERT_TRUE(tree.check_links_valid());
+        ASSERT_TRUE(tree.check_is_bst());
     }
 
     TEST(Tree, BST_Recursive_RemoveNonexistent) {
@@ -60,11 +70,15 @@ namespace {
         ASSERT_TRUE(tree.contains(1));
         ASSERT_TRUE(tree.contains(2));
         ASSERT_TRUE(tree.contains(3));
+        ASSERT_TRUE(tree.check_links_valid());
+        ASSERT_TRUE(tree.check_is_bst());
         tree.remove(-1);
         ASSERT_TRUE(tree.contains(0));
         ASSERT_TRUE(tree.contains(1));
         ASSERT_TRUE(tree.contains(2));
         ASSERT_TRUE(tree.contains(3));
+        ASSERT_TRUE(tree.check_links_valid());
+        ASSERT_TRUE(tree.check_is_bst());
     }
 
     TEST(Tree, BST_Recursive_RemoveLeaf) {
@@ -78,21 +92,29 @@ namespace {
         ASSERT_TRUE(tree.contains(1));
         ASSERT_TRUE(tree.contains(2));
         ASSERT_FALSE(tree.contains(3));
+        ASSERT_TRUE(tree.check_links_valid());
+        ASSERT_TRUE(tree.check_is_bst());
         tree.remove(1);
         ASSERT_TRUE(tree.contains(0));
         ASSERT_FALSE(tree.contains(1));
         ASSERT_TRUE(tree.contains(2));
         ASSERT_FALSE(tree.contains(3));
+        ASSERT_TRUE(tree.check_links_valid());
+        ASSERT_TRUE(tree.check_is_bst());
         tree.remove(0);
         ASSERT_FALSE(tree.contains(0));
         ASSERT_FALSE(tree.contains(1));
         ASSERT_TRUE(tree.contains(2));
         ASSERT_FALSE(tree.contains(3));
+        ASSERT_TRUE(tree.check_links_valid());
+        ASSERT_TRUE(tree.check_is_bst());
         tree.remove(2);
         ASSERT_FALSE(tree.contains(0));
         ASSERT_FALSE(tree.contains(1));
         ASSERT_FALSE(tree.contains(2));
         ASSERT_FALSE(tree.contains(3));
+        ASSERT_TRUE(tree.check_links_valid());
+        ASSERT_TRUE(tree.check_is_bst());
     }
 
     TEST(Tree, BST_Recursive_Debug_InOrder) {
@@ -118,6 +140,8 @@ namespace {
 
             bool flag = std::equal(ordered.begin(), ordered.end(), reference.begin(), reference.end());
             ASSERT_TRUE(flag);
+            ASSERT_TRUE(tree.check_links_valid());
+            ASSERT_TRUE(tree.check_is_bst());
         }
     }
 
@@ -144,6 +168,8 @@ namespace {
 
             bool flag = std::equal(ordered.begin(), ordered.end(), reference.begin(), reference.end());
             ASSERT_TRUE(flag);
+            ASSERT_TRUE(tree.check_links_valid());
+            ASSERT_TRUE(tree.check_is_bst());
         }
     }
 
@@ -178,6 +204,8 @@ namespace {
 
                 bool flag = std::equal(ordered.begin(), ordered.end(), reference.begin(), reference.end());
                 ASSERT_TRUE(flag);
+                ASSERT_TRUE(tree.check_links_valid());
+                ASSERT_TRUE(tree.check_is_bst());
             }
         }
     }

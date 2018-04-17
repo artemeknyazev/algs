@@ -250,6 +250,24 @@ public:
         print(out, mpRoot, 0);
     }
 
+    bool check_links_valid() {
+        if (mpRoot == nullptr)
+            return true;
+        if (mpRoot->mpParent)
+            return false;
+        return check_links_valid(mpRoot);
+    }
+
+    bool check_is_bst() {
+        if (mpRoot == nullptr)
+            return true;
+        Node *pMin = find_min(mpRoot->mpLeft);
+        Node *pMax = find_max(mpRoot->mpRight);
+        pMin = pMin ? pMin : mpRoot;
+        pMax = pMax ? pMax : mpRoot;
+        return check_is_bst(mpRoot, pMin->mData.first, pMax->mData.first);
+    }
+
 protected:
     void print(std::ostream& out, Node *pNode, int depth) {
         if (pNode)
@@ -266,6 +284,27 @@ protected:
             out << pNode->mData.first << std::endl;
         else
             out << '*' << std::endl;
+    }
+
+    bool check_links_valid(Node *pNode) {
+        if (pNode == nullptr)
+            return true;
+        if (pNode->mpLeft)
+            if (pNode->mpLeft->mpParent != pNode || !check_links_valid(pNode->mpLeft))
+                return false;
+        if (pNode->mpRight)
+            if (pNode->mpRight->mpParent != pNode || !check_links_valid(pNode->mpRight))
+                return false;
+        return true;
+    }
+
+    bool check_is_bst(Node *pNode, const Key& min, const Key& max) {
+        if (pNode == nullptr)
+            return true;
+        if (pNode->mData.first < min || max < pNode->mData.first)
+            return false;
+        return check_is_bst(pNode->mpLeft, min, pNode->mData.first) ||
+            check_is_bst(pNode->mpRight, pNode->mData.first, max);
     }
 };
 
