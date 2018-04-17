@@ -209,5 +209,33 @@ namespace {
             }
         }
     }
+
+    TEST(Tree, BST_Recursive_InsertRoot_Randomized) {
+        for (size_t size = 16; size <= 1 << 12; size <<= 1) {
+            std::vector<int> base(size);
+            std::generate(base.begin(), base.end(), [n = 0] () mutable { return n++; });
+            std::random_device rd;
+            std::mt19937 g(rd());
+            std::shuffle(base.begin(), base.end(), g);
+
+            std::vector<bst::value_type> reference(size);
+            std::transform(base.begin(), base.end(), reference.begin(),
+                [] (int a) { return std::make_pair(a, a+1); });
+            std::sort(reference.begin(), reference.end(),
+                [] (bst::value_type a, bst::value_type b) { return a.first < b.first; });
+
+            bst tree;
+            for (const auto& it : base)
+                tree.insert_root(it, it+1);
+
+            std::vector<bst::value_type> ordered;
+            tree.in_order(ordered);
+
+            bool flag = std::equal(ordered.begin(), ordered.end(), reference.begin(), reference.end());
+            ASSERT_TRUE(flag);
+            ASSERT_TRUE(tree.check_links_valid());
+            ASSERT_TRUE(tree.check_is_bst());
+        }
+    }
 }
 

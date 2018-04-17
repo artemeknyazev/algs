@@ -118,6 +118,13 @@ public:
     }
 
     /**
+     * Insert a key-value pair to a container into a root node
+     **/
+    void insert_root(Key key, Value value) {
+        mpRoot = insert_root(mpRoot, nullptr, key, value);
+    }
+
+    /**
      * Remove a key-value pair from a container
      **/
     void remove(Key key) {
@@ -129,6 +136,13 @@ public:
      **/
     size_t size() {
         return size(mpRoot);
+    }
+
+    /**
+     * Returns tree height
+     **/
+    size_t height() {
+        return height(mpRoot);
     }
 
 protected:
@@ -170,13 +184,28 @@ protected:
 
     Node *insert(Node *pNode, Node *pParent, Key key, Value value) {
         if (pNode == nullptr)
-            return new Node(key, value, pParent);
+            pNode = new Node(key, value, pParent);
         else if (key < pNode->mData.first)
             pNode->mpLeft = insert(pNode->mpLeft, pNode, key, value);
         else if (pNode->mData.first < key)
             pNode->mpRight = insert(pNode->mpRight, pNode, key, value);
         else
             pNode->mData.second = value;
+        return pNode;
+    }
+
+    Node *insert_root(Node *pNode, Node *pParent, Key key, Value value) {
+        if (pNode == nullptr) {
+            pNode = new Node(key, value, pParent);
+        } else if (key < pNode->mData.first) {
+            pNode->mpLeft = insert_root(pNode->mpLeft, pNode, key, value);
+            pNode = rotate_right(pNode);
+        } else if (pNode->mData.first < key) {
+            pNode->mpRight = insert_root(pNode->mpRight, pNode, key, value);
+            pNode = rotate_left(pNode);
+        } else {
+            pNode->mData.second = value;
+        }
         return pNode;
     }
 
@@ -218,11 +247,42 @@ protected:
         }
     }
 
+    Node *rotate_left(Node *pNode) {
+        Node *pNewNode = pNode->mpRight;
+        pNewNode->mpParent = pNode->mpParent;
+        pNode->mpRight = pNewNode->mpLeft;
+        if (pNode->mpRight)
+            pNode->mpRight->mpParent = pNode;
+        pNewNode->mpLeft = pNode;
+        if (pNewNode->mpLeft)
+            pNewNode->mpLeft->mpParent = pNewNode;
+        return pNewNode;
+    }
+
+    Node *rotate_right(Node *pNode) {
+        Node *pNewNode = pNode->mpLeft;
+        pNewNode->mpParent = pNode->mpParent;
+        pNode->mpLeft = pNewNode->mpRight;
+        if (pNode->mpLeft)
+            pNode->mpLeft->mpParent = pNode;
+        pNewNode->mpRight = pNode;
+        if (pNewNode->mpRight)
+            pNewNode->mpRight->mpParent = pNewNode;
+        return pNewNode;
+    }
+
     size_t size(Node *pNode) {
         if (pNode == nullptr)
             return 0;
         else
             return 1 + size(pNode->mpLeft) + size(pNode->mpRight);
+    }
+
+    size_t height(Node *pNode) {
+        if (pNode == nullptr)
+            return 0;
+        else
+            return 1 + std::max(height(pNode->mpLeft), height(pNode->mpRight));
     }
 
     // ADDITIONAL METHODS
