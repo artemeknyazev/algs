@@ -237,5 +237,45 @@ namespace {
             ASSERT_TRUE(tree.check_is_bst());
         }
     }
+
+    TEST(Tree, BST_Recursive_Select_Empty) {
+        bst tree;
+        ASSERT_THROW(tree.select(0), std::out_of_range);
+        ASSERT_THROW(tree.select(1), std::out_of_range);
+    }
+
+    TEST(Tree, BST_Recursive_Select_NonEmptyThrows) {
+        bst tree;
+        tree.insert(0, 1);
+        tree.insert(1, 2);
+        tree.insert(2, 4);
+        tree.insert(3, 8);
+        ASSERT_NO_THROW(tree.select(0));
+        ASSERT_NO_THROW(tree.select(1));
+        ASSERT_NO_THROW(tree.select(2));
+        ASSERT_NO_THROW(tree.select(3));
+        ASSERT_THROW(tree.select(4), std::out_of_range);
+        ASSERT_THROW(tree.select(5), std::out_of_range);
+    }
+
+    TEST(Tree, BST_Recursive_Select_Randomized) {
+        for (size_t size = 16; size <= 1 << 12; size <<= 1) {
+            std::vector<int> base(size);
+            std::generate(base.begin(), base.end(), [n = 0] () mutable { return n++; });
+            std::random_device rd;
+            std::mt19937 g(rd());
+            std::shuffle(base.begin(), base.end(), g);
+
+            bst tree;
+            for (const auto& it : base)
+                tree.insert(it, it+1);
+
+            for (size_t i = 0; i < base.size(); ++i) {
+                int key;
+                ASSERT_NO_THROW(key = tree.select(i).first);
+                ASSERT_EQ(key, i);
+            }
+        }
+    }
 }
 

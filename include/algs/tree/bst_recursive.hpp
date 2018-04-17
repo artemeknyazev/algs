@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 namespace algs::tree::bst {
 
 // TODO: iterators instead in_order/in_order_reverse methods
@@ -59,6 +61,16 @@ private:
                 return pPrev;
             }
         }
+
+        size_t size() {
+            return 1 + (mpLeft ? mpLeft->size() : 0) + 
+                (mpRight ? mpRight->size() : 0);
+        }
+
+        size_t height() {
+            return 1 + std::max(mpLeft ? mpLeft->height() : 0,
+                mpRight ? mpRight->height() : 0);
+        }
     };
 
     Node *mpRoot;
@@ -108,6 +120,16 @@ public:
      **/
     bool contains(const Key& key) {
         return find(mpRoot, key) != nullptr;
+    }
+
+    /**
+     * Find k-th minimal element in a collection
+     **/
+    value_type select(size_t k) {
+        Node *pNode = select(mpRoot, k);
+        if (pNode == nullptr)
+            throw std::out_of_range("bst_recursive::select");
+        return pNode->mData;
     }
 
     /**
@@ -180,6 +202,18 @@ protected:
             return pNode;
         else
             return find_max(pNode->mpRight);
+    }
+
+    Node *select(Node *pNode, size_t k) {
+        if (pNode == nullptr)
+            return nullptr;
+        size_t sz = pNode->mpLeft ? pNode->mpLeft->size() : 0;
+        if (k < sz)
+            return select(pNode->mpLeft, k);
+        else if (sz < k)
+            return select(pNode->mpRight, k-sz-1);
+        else
+            return pNode;
     }
 
     Node *insert(Node *pNode, Node *pParent, Key key, Value value) {
