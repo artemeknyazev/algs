@@ -126,10 +126,19 @@ public:
      * Find k-th minimal element in a collection
      **/
     value_type select(size_t k) {
-        Node *pNode = select(mpRoot, k);
-        if (pNode == nullptr)
+        if (k >= size())
             throw std::out_of_range("bst_recursive::select");
+        Node *pNode = select(mpRoot, k);
         return pNode->mData;
+    }
+
+    /**
+     * Partition a collection around a k-th minimal element
+     **/
+    void partition(size_t k) {
+        if (k >= size())
+            throw std::out_of_range("bst_recursive::partition");
+        mpRoot = partition(mpRoot, k);
     }
 
     /**
@@ -214,6 +223,20 @@ protected:
             return select(pNode->mpRight, k-sz-1);
         else
             return pNode;
+    }
+
+    Node *partition(Node *pNode, size_t k) {
+        if (pNode == nullptr)
+            return nullptr;
+        size_t sz = pNode->mpLeft ? pNode->mpLeft->size() : 0;
+        if (k < sz) {
+            pNode->mpLeft = partition(pNode->mpLeft, k);
+            pNode = rotate_right(pNode);
+        } else if (sz < k) {
+            pNode->mpRight = partition(pNode->mpRight, k-sz-1);
+            pNode = rotate_left(pNode);
+        }
+        return pNode;
     }
 
     Node *insert(Node *pNode, Node *pParent, Key key, Value value) {
@@ -360,6 +383,10 @@ public:
         pMin = pMin ? pMin : mpRoot;
         pMax = pMax ? pMax : mpRoot;
         return check_is_bst(mpRoot, pMin->mData.first, pMax->mData.first);
+    }
+
+    bool check_is_partitioned(size_t k) {
+        return select(mpRoot, k) == mpRoot;
     }
 
 protected:

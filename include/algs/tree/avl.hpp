@@ -2,6 +2,7 @@
 
 namespace algs::tree::bst {
 
+// TODO: removal&rebalancing after removal
 // TODO: iterators instead in_order/in_order_reverse methods
 // TODO: find and operator[] return a reference to a key-value pair
 
@@ -474,7 +475,7 @@ protected:
         if (pNode) {
             size_t hl = pNode->mpLeft ? pNode->mpLeft->height() : 0;
             size_t hr = pNode->mpRight ? pNode->mpRight->height() : 0;
-            out << pNode->mData.first << " (" 
+            out << pNode->mData.first << " ("
                     << int(pNode->mBalance) << ", "
                     << int(hr-hl)
                 << ")" << std::endl;

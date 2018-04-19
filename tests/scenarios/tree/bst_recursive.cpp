@@ -297,5 +297,24 @@ namespace {
             }
         }
     }
+
+    TEST(Tree, BST_Recursive_Partition_Randomized) {
+        for (size_t size = 16; size <= 1 << 12; size <<= 1) {
+            std::vector<int> base(size);
+            std::generate(base.begin(), base.end(), [n = 0] () mutable { return n++; });
+            std::random_device rd;
+            std::mt19937 g(rd());
+            std::shuffle(base.begin(), base.end(), g);
+
+            bst tree;
+            for (const auto& it : base)
+                tree.insert(it, it+1);
+
+            for (size_t i = 0; i < base.size(); ++i) {
+                tree.partition(i);
+                ASSERT_TRUE(tree.check_is_partitioned(i));
+            }
+        }
+    }
 }
 
