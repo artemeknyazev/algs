@@ -14,7 +14,7 @@ namespace {
         ASSERT_TRUE(tree.check_is_bst());
     }
 
-    TEST(Tree, BST_Recursive_Simple) {
+    TEST(Tree, BST_Recursive_InsertFind_Normal) {
         bst tree;
         tree.insert(1, 2);
         ASSERT_EQ(tree.size(), 1);
@@ -47,6 +47,96 @@ namespace {
         ASSERT_TRUE(tree.check_links_valid());
         ASSERT_TRUE(tree.check_is_bst());
         tree.insert(0, 1);
+        ASSERT_TRUE(tree.contains(0));
+        ASSERT_EQ(tree.find(0), std::make_pair(0, 1));
+        ASSERT_TRUE(tree.contains(1));
+        ASSERT_EQ(tree.find(1), std::make_pair(1, 2));
+        ASSERT_TRUE(tree.contains(2));
+        ASSERT_EQ(tree.find(2), std::make_pair(2, 4));
+        ASSERT_TRUE(tree.contains(3));
+        ASSERT_EQ(tree.find(3), std::make_pair(3, 8));
+        ASSERT_TRUE(tree.check_links_valid());
+        ASSERT_TRUE(tree.check_is_bst());
+    }
+
+    TEST(Tree, BST_Recursive_InsertFind_Root) {
+        bst tree;
+        tree.insert_root(1, 2);
+        ASSERT_EQ(tree.size(), 1);
+        ASSERT_FALSE(tree.contains(0));
+        ASSERT_TRUE(tree.contains(1));
+        ASSERT_EQ(tree.find(1), std::make_pair(1, 2));
+        ASSERT_FALSE(tree.contains(2));
+        ASSERT_FALSE(tree.contains(3));
+        ASSERT_TRUE(tree.check_links_valid());
+        ASSERT_TRUE(tree.check_is_bst());
+        tree.insert_root(2, 4);
+        ASSERT_EQ(tree.size(), 2);
+        ASSERT_FALSE(tree.contains(0));
+        ASSERT_TRUE(tree.contains(1));
+        ASSERT_EQ(tree.find(1), std::make_pair(1, 2));
+        ASSERT_TRUE(tree.contains(2));
+        ASSERT_EQ(tree.find(2), std::make_pair(2, 4));
+        ASSERT_FALSE(tree.contains(3));
+        ASSERT_TRUE(tree.check_links_valid());
+        ASSERT_TRUE(tree.check_is_bst());
+        tree.insert_root(3, 8);
+        ASSERT_EQ(tree.size(), 3);
+        ASSERT_FALSE(tree.contains(0));
+        ASSERT_TRUE(tree.contains(1));
+        ASSERT_EQ(tree.find(1), std::make_pair(1, 2));
+        ASSERT_TRUE(tree.contains(2));
+        ASSERT_EQ(tree.find(2), std::make_pair(2, 4));
+        ASSERT_TRUE(tree.contains(3));
+        ASSERT_EQ(tree.find(3), std::make_pair(3, 8));
+        ASSERT_TRUE(tree.check_links_valid());
+        ASSERT_TRUE(tree.check_is_bst());
+        tree.insert_root(0, 1);
+        ASSERT_TRUE(tree.contains(0));
+        ASSERT_EQ(tree.find(0), std::make_pair(0, 1));
+        ASSERT_TRUE(tree.contains(1));
+        ASSERT_EQ(tree.find(1), std::make_pair(1, 2));
+        ASSERT_TRUE(tree.contains(2));
+        ASSERT_EQ(tree.find(2), std::make_pair(2, 4));
+        ASSERT_TRUE(tree.contains(3));
+        ASSERT_EQ(tree.find(3), std::make_pair(3, 8));
+        ASSERT_TRUE(tree.check_links_valid());
+        ASSERT_TRUE(tree.check_is_bst());
+    }
+
+    TEST(Tree, BST_Recursive_InsertFind_Splay) {
+        bst tree;
+        tree.insert_splay(1, 2);
+        ASSERT_EQ(tree.size(), 1);
+        ASSERT_FALSE(tree.contains(0));
+        ASSERT_TRUE(tree.contains(1));
+        ASSERT_EQ(tree.find(1), std::make_pair(1, 2));
+        ASSERT_FALSE(tree.contains(2));
+        ASSERT_FALSE(tree.contains(3));
+        ASSERT_TRUE(tree.check_links_valid());
+        ASSERT_TRUE(tree.check_is_bst());
+        tree.insert_splay(2, 4);
+        ASSERT_EQ(tree.size(), 2);
+        ASSERT_FALSE(tree.contains(0));
+        ASSERT_TRUE(tree.contains(1));
+        ASSERT_EQ(tree.find(1), std::make_pair(1, 2));
+        ASSERT_TRUE(tree.contains(2));
+        ASSERT_EQ(tree.find(2), std::make_pair(2, 4));
+        ASSERT_FALSE(tree.contains(3));
+        ASSERT_TRUE(tree.check_links_valid());
+        ASSERT_TRUE(tree.check_is_bst());
+        tree.insert_splay(3, 8);
+        ASSERT_EQ(tree.size(), 3);
+        ASSERT_FALSE(tree.contains(0));
+        ASSERT_TRUE(tree.contains(1));
+        ASSERT_EQ(tree.find(1), std::make_pair(1, 2));
+        ASSERT_TRUE(tree.contains(2));
+        ASSERT_EQ(tree.find(2), std::make_pair(2, 4));
+        ASSERT_TRUE(tree.contains(3));
+        ASSERT_EQ(tree.find(3), std::make_pair(3, 8));
+        ASSERT_TRUE(tree.check_links_valid());
+        ASSERT_TRUE(tree.check_is_bst());
+        tree.insert_splay(0, 1);
         ASSERT_TRUE(tree.contains(0));
         ASSERT_EQ(tree.find(0), std::make_pair(0, 1));
         ASSERT_TRUE(tree.contains(1));
@@ -117,7 +207,7 @@ namespace {
         ASSERT_TRUE(tree.check_is_bst());
     }
 
-    TEST(Tree, BST_Recursive_Insert_Randomized) {
+    TEST(Tree, BST_Recursive_Insert_Normal_Randomized) {
         for (size_t size = 16; size <= 1 << 12; size <<= 1) {
             std::vector<int> base(size);
             std::generate(base.begin(), base.end(), [n = 0] () mutable { return n++; });
@@ -128,6 +218,46 @@ namespace {
             bst tree;
             for (size_t i = 0; i < base.size(); ++i) {
                 tree.insert(base[i], base[i]+1);
+                for (size_t j = 0; j <= i; ++j)
+                    ASSERT_EQ(tree.find(base[j]), std::make_pair(base[j], base[j]+1));
+
+                ASSERT_TRUE(tree.check_links_valid());
+                ASSERT_TRUE(tree.check_is_bst());
+            }
+        }
+    }
+
+    TEST(Tree, BST_Recursive_Insert_Root_Randomized) {
+        for (size_t size = 16; size <= 1 << 12; size <<= 1) {
+            std::vector<int> base(size);
+            std::generate(base.begin(), base.end(), [n = 0] () mutable { return n++; });
+            std::random_device rd;
+            std::mt19937 g(rd());
+            std::shuffle(base.begin(), base.end(), g);
+
+            bst tree;
+            for (size_t i = 0; i < base.size(); ++i) {
+                tree.insert_root(base[i], base[i]+1);
+                for (size_t j = 0; j <= i; ++j)
+                    ASSERT_EQ(tree.find(base[j]), std::make_pair(base[j], base[j]+1));
+
+                ASSERT_TRUE(tree.check_links_valid());
+                ASSERT_TRUE(tree.check_is_bst());
+            }
+        }
+    }
+
+    TEST(Tree, BST_Recursive_Insert_Splay_Randomized) {
+        for (size_t size = 16; size <= 1 << 12; size <<= 1) {
+            std::vector<int> base(size);
+            std::generate(base.begin(), base.end(), [n = 0] () mutable { return n++; });
+            std::random_device rd;
+            std::mt19937 g(rd());
+            std::shuffle(base.begin(), base.end(), g);
+
+            bst tree;
+            for (size_t i = 0; i < base.size(); ++i) {
+                tree.insert_splay(base[i], base[i]+1);
                 for (size_t j = 0; j <= i; ++j)
                     ASSERT_EQ(tree.find(base[j]), std::make_pair(base[j], base[j]+1));
 

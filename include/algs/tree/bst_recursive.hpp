@@ -144,15 +144,28 @@ public:
     /**
      * Insert a key-value pair to a container
      **/
-    void insert(Key key, Value value) {
-        mpRoot = insert(mpRoot, nullptr, key, value);
+    value_type insert(Key key, Value value) {
+        Node *pNew = nullptr;
+        mpRoot = insert(mpRoot, nullptr, key, value, &pNew);
+        return pNew->mData;
     }
 
     /**
      * Insert a key-value pair to a container into a root node
      **/
-    void insert_root(Key key, Value value) {
+    value_type insert_root(Key key, Value value) {
         mpRoot = insert_root(mpRoot, nullptr, key, value);
+        return mpRoot->mData;
+    }
+
+    /**
+     * Insert a key-value pair to a container a splay-way
+     **/
+    value_type insert_splay(Key key, Value value) {
+        Node *pNew = nullptr;
+        mpRoot = insert(mpRoot, nullptr, key, value, &pNew);
+        splay(pNew);
+        return mpRoot->mData;
     }
 
     /**
@@ -239,15 +252,69 @@ protected:
         return pNode;
     }
 
-    Node *insert(Node *pNode, Node *pParent, Key key, Value value) {
+    void splay(Node *x) {
+        while (x) {
+            Node *y = x->mpParent;
+            if (y == nullptr) // x is a root node, do nothing
+                break;
+
+            Node *z = y->mpParent;
+            if (z == nullptr) { // y is a root node, rotate x to root
+                if (y->mpLeft == x)
+                    mpRoot = rotate_right(mpRoot);
+                else
+                    mpRoot = rotate_left(mpRoot);
+                break;
+            }
+
+            // y is not root, two rotations required
+            Node *n; // new x-y-z hierachy's root
+            Node *g = z->mpParent; // g is z's parent
+
+            if (z->mpLeft == y) {
+                if (y->mpLeft == x) {
+                    n = rotate_right(z); // rotate first y-z
+                    n = rotate_right(n); // then x-y
+                } else {
+                    z->mpLeft = rotate_left(z->mpLeft); // rotate x-y
+                    n = rotate_right(z); // then new x-z
+                }
+            } else {
+                if (y->mpLeft == x) {
+                    z->mpRight = rotate_right(z->mpRight); // rotate x-y
+                    n = rotate_left(z); // then new x-z
+                } else {
+                    n = rotate_left(z); // rotate y-z
+                    n = rotate_left(n); // then x-y
+                }
+            }
+
+            n->mpParent = g; // adapt parent link
+            if (g) { // relink parent to new node
+                if (g->mpLeft == z)
+                    g->mpLeft = n;
+                else
+                    g->mpRight = n;
+                x = n;
+                continue;
+            } else { // g is empty, so z was a root node
+                mpRoot = n;
+                break;
+            }
+        }
+    }
+
+    Node *insert(Node *pNode, Node *pParent, Key key, Value value, Node **ppNew) {
         if (pNode == nullptr)
-            pNode = new Node(key, value, pParent);
+            return *ppNew = new Node(key, value, pParent);
         else if (key < pNode->mData.first)
-            pNode->mpLeft = insert(pNode->mpLeft, pNode, key, value);
+            pNode->mpLeft = insert(pNode->mpLeft, pNode, key, value, ppNew);
         else if (pNode->mData.first < key)
-            pNode->mpRight = insert(pNode->mpRight, pNode, key, value);
-        else
+            pNode->mpRight = insert(pNode->mpRight, pNode, key, value, ppNew);
+        else {
             pNode->mData.second = value;
+            *ppNew = pNode;
+        }
         return pNode;
     }
 

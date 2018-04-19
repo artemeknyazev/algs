@@ -219,8 +219,10 @@ protected:
             pNode->mpLeft = insert(pNode->mpLeft, pNode, key, value, ppNew);
         else if (pNode->mData.first < key)
             pNode->mpRight = insert(pNode->mpRight, pNode, key, value, ppNew);
-        else
+        else {
             pNode->mData.second = value;
+            *ppNew = pNode;
+        }
         return pNode;
     }
 
