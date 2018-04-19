@@ -2,4 +2,5 @@
 #include <iostream>
 
 #include "./tree/bst_recursive.cpp"
+#include "./tree/avl.cpp"
 

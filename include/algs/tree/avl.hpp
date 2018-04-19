@@ -3,15 +3,14 @@
 namespace algs::tree::bst {
 
 // TODO: iterators instead in_order/in_order_reverse methods
-// TODO: select k-th method
 // TODO: find and operator[] return a reference to a key-value pair
 
 /**
- * Recursive implementation of a binary search tree.
+ * Recursive implementation of an AVL tree.
  * NOTE: To simplify code, nearly everything is passed by value
  **/
 template<typename Key, typename Value>
-class bst_recursive {
+class avl {
 public:
     typedef Key key_type;
     typedef Value mapped_type;
@@ -22,10 +21,11 @@ private:
     public:
         std::pair<Key, Value> mData;
         Node *mpParent, *mpLeft, *mpRight;
+        char mBalance; // -1 for left-heavy, +1 for right-heavy
 
         Node(Key key, Value value, Node *pParent)
             : mData(std::make_pair(key, value)), mpParent(pParent),
-              mpLeft(nullptr), mpRight(nullptr)
+              mpLeft(nullptr), mpRight(nullptr), mBalance(0)
         {}
 
         Node *next() {
@@ -76,11 +76,11 @@ private:
     Node *mpRoot;
 
 public:
-    bst_recursive()
+    avl()
         : mpRoot(nullptr)
     {}
 
-    ~bst_recursive() {
+    ~avl() {
         clear();
     }
 
@@ -128,7 +128,7 @@ public:
     value_type select(size_t k) {
         Node *pNode = select(mpRoot, k);
         if (pNode == nullptr)
-            throw std::out_of_range("bst_recursive::select");
+            throw std::out_of_range("avl::select");
         return pNode->mData;
     }
 
@@ -136,14 +136,9 @@ public:
      * Insert a key-value pair to a container
      **/
     void insert(Key key, Value value) {
-        mpRoot = insert(mpRoot, nullptr, key, value);
-    }
-
-    /**
-     * Insert a key-value pair to a container into a root node
-     **/
-    void insert_root(Key key, Value value) {
-        mpRoot = insert_root(mpRoot, nullptr, key, value);
+        Node *pNew = nullptr;
+        mpRoot = insert(mpRoot, nullptr, key, value, &pNew);
+        balance(pNew);
     }
 
     /**
@@ -216,93 +211,191 @@ protected:
             return pNode;
     }
 
-    Node *insert(Node *pNode, Node *pParent, Key key, Value value) {
+    Node *insert(Node *pNode, Node *pParent, Key key, Value value, Node **ppNew) {
         if (pNode == nullptr)
-            pNode = new Node(key, value, pParent);
+            return *ppNew = new Node(key, value, pParent);
         else if (key < pNode->mData.first)
-            pNode->mpLeft = insert(pNode->mpLeft, pNode, key, value);
+            pNode->mpLeft = insert(pNode->mpLeft, pNode, key, value, ppNew);
         else if (pNode->mData.first < key)
-            pNode->mpRight = insert(pNode->mpRight, pNode, key, value);
+            pNode->mpRight = insert(pNode->mpRight, pNode, key, value, ppNew);
         else
             pNode->mData.second = value;
         return pNode;
     }
 
-    Node *insert_root(Node *pNode, Node *pParent, Key key, Value value) {
-        if (pNode == nullptr) {
-            pNode = new Node(key, value, pParent);
-        } else if (key < pNode->mData.first) {
-            pNode->mpLeft = insert_root(pNode->mpLeft, pNode, key, value);
-            pNode = rotate_right(pNode);
-        } else if (pNode->mData.first < key) {
-            pNode->mpRight = insert_root(pNode->mpRight, pNode, key, value);
-            pNode = rotate_left(pNode);
-        } else {
-            pNode->mData.second = value;
-        }
-        return pNode;
-    }
-
-    /**
-     * Hibbard deletion: find minimal node in a right subtree
-     * and replace with a removed one
-     **/
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
     Node *remove(Node *pNode, Key key) {
-        if (pNode == nullptr)
-            return pNode;
-        else if (key < pNode->mData.first) {
-            pNode->mpLeft = remove(pNode->mpLeft, key);
-            return pNode;
-        } else if (pNode->mData.first < key) {
-            pNode->mpRight = remove(pNode->mpRight, key);
-            return pNode;
+        // TODO: fix this
+        throw std::logic_error("not implemented");
+    }
+#pragma clang diagnostic pop
+
+    Node *rotate_left(Node *x) {
+        Node *z = x->mpRight;
+        Node *t23 = z->mpLeft;
+
+        z->mpParent = x->mpParent;
+        x->mpRight = t23;
+        if (t23)
+            t23->mpParent = x;
+        z->mpLeft = x;
+        x->mpParent = z;
+
+        if (z->mBalance == 0) {
+            x->mBalance = +1;
+            z->mBalance = -1;
         } else {
-            Node *pNewNode = nullptr;
-            if (pNode->mpRight == nullptr) {
-                pNewNode = pNode->mpLeft;
-            } else if (pNode->mpLeft == nullptr) {
-                pNewNode = pNode->mpRight;
-            } else {
-                pNewNode = find_min(pNode->mpRight);
-                if (pNewNode != pNode->mpRight) {
-                    pNewNode->mpParent->mpLeft = pNewNode->mpRight;
-                    if (pNewNode->mpRight)
-                        pNewNode->mpRight->mpParent = pNewNode->mpParent;
-                    pNewNode->mpRight = pNode->mpRight;
-                    pNode->mpRight->mpParent = pNewNode;
-                }
-                pNewNode->mpLeft = pNode->mpLeft;
-                pNode->mpLeft->mpParent = pNewNode;
-            }
-            if (pNewNode)
-                pNewNode->mpParent = pNode->mpParent;
-            delete pNode;
-            return pNewNode;
+            x->mBalance = 0;
+            z->mBalance = 0;
         }
+
+        return z;
     }
 
-    Node *rotate_left(Node *pNode) {
-        Node *pNewNode = pNode->mpRight;
-        pNewNode->mpParent = pNode->mpParent;
-        pNode->mpRight = pNewNode->mpLeft;
-        if (pNode->mpRight)
-            pNode->mpRight->mpParent = pNode;
-        pNewNode->mpLeft = pNode;
-        if (pNewNode->mpLeft)
-            pNewNode->mpLeft->mpParent = pNewNode;
-        return pNewNode;
+    Node *rotate_right(Node *x) {
+        Node *z = x->mpLeft;
+        Node *t23 = z->mpRight;
+
+        z->mpParent = x->mpParent;
+        x->mpLeft = t23;
+        if (t23)
+            t23->mpParent = x;
+        z->mpRight = x;
+        x->mpParent = z;
+
+        if (z->mBalance == 0) {
+            x->mBalance = -1;
+            z->mBalance = +1;
+        } else {
+            x->mBalance = 0;
+            z->mBalance = 0;
+        }
+
+        return z;
     }
 
-    Node *rotate_right(Node *pNode) {
-        Node *pNewNode = pNode->mpLeft;
-        pNewNode->mpParent = pNode->mpParent;
-        pNode->mpLeft = pNewNode->mpRight;
-        if (pNode->mpLeft)
-            pNode->mpLeft->mpParent = pNode;
-        pNewNode->mpRight = pNode;
-        if (pNewNode->mpRight)
-            pNewNode->mpRight->mpParent = pNewNode;
-        return pNewNode;
+    Node *rotate_left_right(Node *x) {
+        Node *z = x->mpLeft;
+        Node *y = z->mpRight;
+        Node *t2 = y->mpLeft;
+        Node *t3 = y->mpRight;
+
+        y->mpParent = x->mpParent;
+
+        y->mpRight = x;
+        x->mpParent = y;
+        x->mpLeft = t3;
+        if (t3)
+            t3->mpParent = x;
+
+        y->mpLeft = z;
+        z->mpParent = y;
+        z->mpRight = t2;
+        if (t2)
+            t2->mpParent = z;
+
+        if (y->mBalance < 0) {
+            x->mBalance = +1;
+            z->mBalance = 0;
+        } else if (y->mBalance == 0) {
+            x->mBalance = 0;
+            z->mBalance = 0;
+        } else {
+            x->mBalance = 0;
+            z->mBalance = -1;
+        }
+        y->mBalance = 0;
+
+        return y;
+    }
+
+    Node *rotate_right_left(Node *x) {
+        Node *z = x->mpRight;
+        Node *y = z->mpLeft;
+        Node *t2 = y->mpLeft;
+        Node *t3 = y->mpRight;
+
+        y->mpParent = x->mpParent;
+
+        y->mpLeft = x;
+        x->mpParent = y;
+        x->mpRight = t2;
+        if (t2)
+            t2->mpParent = x;
+
+        y->mpRight = z;
+        z->mpParent = y;
+        z->mpLeft = t3;
+        if (t3)
+            t3->mpParent = z;
+
+        if (y->mBalance > 0) {
+            x->mBalance = -1;
+            z->mBalance = 0;
+        } else if (y->mBalance == 0) {
+            x->mBalance = 0;
+            z->mBalance = 0;
+        } else {
+            x->mBalance = 0;
+            z->mBalance = +1;
+        }
+        y->mBalance = 0;
+
+        return y;
+    }
+
+    void balance(Node *z) {
+        if (z == nullptr)
+            return;
+        for (Node *x = z->mpParent; x != nullptr; x = z->mpParent) {
+            Node *n, *g;
+            if (z == x->mpRight){
+                if (x->mBalance > 0) {
+                    g = x->mpParent;
+                    if (z->mBalance < 0)
+                        n = rotate_right_left(x);
+                    else
+                        n = rotate_left(x);
+                } else {
+                    if (x->mBalance < 0) {
+                        x->mBalance = 0;
+                        break;
+                    }
+                    x->mBalance = +1;
+                    z = x;
+                    continue;
+                }
+            } else {
+                if (x->mBalance < 0) {
+                    g = x->mpParent;
+                    if (z->mBalance > 0)
+                        n = rotate_left_right(x);
+                    else
+                        n = rotate_right(x);
+                } else {
+                    if (x->mBalance > 0) {
+                        x->mBalance = 0;
+                        break;
+                    }
+                    x->mBalance = -1;
+                    z = x;
+                    continue;
+                }
+            }
+
+            n->mpParent = g;
+            if (g != nullptr) {
+                if (g->mpLeft == x)
+                    g->mpLeft = n;
+                else
+                    g->mpRight = n;
+                break;
+            } else {
+                mpRoot = n;
+                break;
+            }
+        }
     }
 
     size_t size(Node *pNode) {
@@ -362,6 +455,10 @@ public:
         return check_is_bst(mpRoot, pMin->mData.first, pMax->mData.first);
     }
 
+    bool check_is_avl() {
+        return check_is_avl(mpRoot);
+    }
+
 protected:
     void print(std::ostream& out, Node *pNode, int depth) {
         if (pNode)
@@ -374,8 +471,14 @@ protected:
     void print_node(std::ostream& out, Node *pNode, int depth) {
         for (int i = 0; i < depth; ++i)
             out << "    ";
-        if (pNode)
-            out << pNode->mData.first << std::endl;
+        if (pNode) {
+            size_t hl = pNode->mpLeft ? pNode->mpLeft->height() : 0;
+            size_t hr = pNode->mpRight ? pNode->mpRight->height() : 0;
+            out << pNode->mData.first << " (" 
+                    << int(pNode->mBalance) << ", "
+                    << int(hr-hl)
+                << ")" << std::endl;
+        }
         else
             out << '*' << std::endl;
     }
@@ -383,13 +486,13 @@ protected:
     bool check_links_valid(Node *pNode) {
         if (pNode == nullptr)
             return true;
-        if (pNode->mpLeft)
-            if (pNode->mpLeft->mpParent != pNode || !check_links_valid(pNode->mpLeft))
-                return false;
-        if (pNode->mpRight)
-            if (pNode->mpRight->mpParent != pNode || !check_links_valid(pNode->mpRight))
-                return false;
-        return true;
+        if (pNode->mpLeft && pNode->mpLeft->mpParent != pNode) {
+            return false;
+        }
+        if (pNode->mpRight && pNode->mpRight->mpParent != pNode) {
+            return false;
+        }
+        return check_links_valid(pNode->mpLeft) && check_links_valid(pNode->mpRight);
     }
 
     bool check_is_bst(Node *pNode, const Key& min, const Key& max) {
@@ -399,6 +502,15 @@ protected:
             return false;
         return check_is_bst(pNode->mpLeft, min, pNode->mData.first) ||
             check_is_bst(pNode->mpRight, pNode->mData.first, max);
+    }
+
+    bool check_is_avl(Node *pNode) {
+        if (pNode == nullptr)
+            return true;
+        size_t hl = pNode->mpLeft ? pNode->mpLeft->height() : 0;
+        size_t hr = pNode->mpRight ? pNode->mpRight->height() : 0;
+        bool flag = pNode->mBalance == char(hr - hl);
+        return flag && check_is_avl(pNode->mpLeft) && check_is_avl(pNode->mpRight);
     }
 };
 
