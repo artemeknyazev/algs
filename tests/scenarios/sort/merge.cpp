@@ -1,3 +1,4 @@
+#include "common.hpp"
 #include "algs/sort/merge.hpp"
 
 namespace {

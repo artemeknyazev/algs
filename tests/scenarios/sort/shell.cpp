@@ -1,3 +1,4 @@
+#include "common.hpp"
 #include "algs/sort/shell.hpp"
 
 namespace {

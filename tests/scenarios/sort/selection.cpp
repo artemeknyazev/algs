@@ -1,3 +1,4 @@
+#include "common.hpp"
 #include "algs/sort/selection.hpp"
 
 namespace {

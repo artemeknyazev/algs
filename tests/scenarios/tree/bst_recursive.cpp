@@ -1,5 +1,4 @@
-#include <random>
-#include <algorithm>
+#include "common.hpp"
 #include "algs/tree/bst_recursive.hpp"
 
 namespace {

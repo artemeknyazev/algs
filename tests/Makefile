@@ -40,31 +40,46 @@ $(BUILD_DIR)/gtest_main.a :
 
 # --- DEVELOPER AREA START (add tests here) ---
 
+OBJ_FILES_SORT := $(addprefix sort_,selection.o insertion.o shell.o merge.o heap.o quicksort.o)
+$(BUILD_DIR)/sort_selection.o : $(SCENARIOS_DIR)/sort/common.hpp \
+	$(SCENARIOS_DIR)/sort/selection.cpp \
+	$(LIB_DIR)/sort/selection.hpp
+$(BUILD_DIR)/sort_insertion.o : $(SCENARIOS_DIR)/sort/common.hpp \
+	$(SCENARIOS_DIR)/sort/insertion.cpp \
+	$(LIB_DIR)/sort/insertion.hpp
+$(BUILD_DIR)/sort_shell.o : $(SCENARIOS_DIR)/sort/common.hpp \
+	$(SCENARIOS_DIR)/sort/shell.cpp \
+	$(LIB_DIR)/sort/shell.hpp
+$(BUILD_DIR)/sort_merge.o : $(SCENARIOS_DIR)/sort/common.hpp \
+	$(SCENARIOS_DIR)/sort/merge.cpp \
+	$(LIB_DIR)/sort/merge.hpp
+$(BUILD_DIR)/sort_heap.o : $(SCENARIOS_DIR)/sort/common.hpp \
+	$(SCENARIOS_DIR)/sort/heap.cpp \
+	$(LIB_DIR)/sort/heap.hpp
+$(BUILD_DIR)/sort_quicksort.o : $(SCENARIOS_DIR)/sort/common.hpp \
+	$(SCENARIOS_DIR)/sort/quicksort.cpp \
+	$(LIB_DIR)/sort/quicksort.hpp
+
+OBJ_FILES_TREE := $(addprefix tree_,bst_recursive.o avl.o)
+$(BUILD_DIR)/tree_bst_recursive.o : $(SCENARIOS_DIR)/tree/common.hpp \
+	$(SCENARIOS_DIR)/tree/bst_recursive.cpp \
+	$(LIB_DIR)/tree/bst_recursive.hpp
+$(BUILD_DIR)/tree_avl.o : $(SCENARIOS_DIR)/tree/common.hpp \
+	$(SCENARIOS_DIR)/tree/avl.cpp \
+	$(LIB_DIR)/tree/avl.hpp
+
+OBJ_FILES := $(addprefix $(BUILD_DIR)/,$(OBJ_FILES_SORT) $(OBJ_FILES_TREE))
 $(BUILD_DIR) :
 	mkdir -p $(BUILD_DIR)
-
-OBJ_FILES := $(addprefix $(BUILD_DIR)/,sort.o tree.o)
 $(OBJ_FILES): | $(BUILD_DIR)
-
-$(BUILD_DIR)/sort.o : $(SCENARIOS_DIR)/sort.cpp \
-	$(HELPERS_DIR)/test_sort_on_container.hpp \
-	$(SCENARIOS_DIR)/sort/selection.hpp $(LIB_DIR)/sort/selection.hpp \
-	$(SCENARIOS_DIR)/sort/insertion.hpp $(LIB_DIR)/sort/insertion.hpp \
-	$(SCENARIOS_DIR)/sort/shell.hpp $(LIB_DIR)/sort/shell.hpp \
-	$(SCENARIOS_DIR)/sort/merge.hpp $(LIB_DIR)/sort/merge.hpp \
-	$(SCENARIOS_DIR)/sort/heap.hpp $(LIB_DIR)/sort/heap.hpp \
-	$(SCENARIOS_DIR)/sort/quicksort.hpp $(LIB_DIR)/sort/quicksort.hpp
-
-$(BUILD_DIR)/tree.o : $(SCENARIOS_DIR)/tree.cpp \
-	$(SCENARIOS_DIR)/tree/bst_recursive.hpp $(LIB_DIR)/tree/bst_recursive.hpp \
-	$(SCENARIOS_DIR)/tree/avl.hpp $(LIB_DIR)/tree/avl.hpp
-
 $(BUILD_DIR)/%.o :
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(filter %.cpp,$^) -o $@
 
 # note: gtest_main.a defines main, gtest.a don't
 $(BUILD_DIR)/test : $(OBJ_FILES) $(BUILD_DIR)/gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $^
+
+# --- DEVELOPER AREA START (general commands) ---
 
 test : $(BUILD_DIR)/test
 
@@ -75,4 +90,12 @@ clean :
 	rm -rf $(BUILD_DIR)
 
 all : run
+
+help :
+	@echo "Available commands:" && \
+	echo "    <empty>    (default) build and run tests" && \
+	echo "    test       build tests" && \
+	echo "    run        build and run tests" && \
+	echo "    clean      clean tests build folder" && \
+	echo "    help       this message"
 

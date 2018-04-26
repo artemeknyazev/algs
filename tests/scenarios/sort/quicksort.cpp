@@ -1,3 +1,4 @@
+#include "common.hpp"
 #include "algs/sort/quicksort.hpp"
 #include "algs/sort/shuffle.hpp"
 

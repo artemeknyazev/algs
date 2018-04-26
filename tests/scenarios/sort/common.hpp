@@ -1,3 +1,8 @@
+#include <gtest/gtest.h>
+#include <iostream>
+#include <vector>
+#include <list>
+#include <deque>
 #include <random>
 
 template<typename T>
@@ -111,4 +116,4 @@ void test_sort(ContainerSortFn<Container> sortFn)
     TEST(SECTION, PREFIX ## DequeInt) { \
         test_sort<std::deque<int>>(FN); \
     }
-
+ 
