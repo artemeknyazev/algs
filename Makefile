@@ -1,2 +1,2 @@
-build_tests:
-	$(MAKE) -C ./tests/
+%:
+	@$(MAKE) -s -C ./tests/ $@

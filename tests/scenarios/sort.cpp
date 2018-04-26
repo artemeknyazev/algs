@@ -6,9 +6,9 @@
 
 #include "../helpers/test_sort_on_container.hpp"
 
-#include "./sort/selection.cpp"
-#include "./sort/insertion.cpp"
-#include "./sort/shell.cpp"
-#include "./sort/merge.cpp"
-#include "./sort/heap.cpp"
-#include "./sort/quicksort.cpp"
+#include "./sort/selection.hpp"
+#include "./sort/insertion.hpp"
+#include "./sort/shell.hpp"
+#include "./sort/merge.hpp"
+#include "./sort/heap.hpp"
+#include "./sort/quicksort.hpp"

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
-#include "./tree/bst_recursive.cpp"
-#include "./tree/avl.cpp"
+#include "./tree/bst_recursive.hpp"
+#include "./tree/avl.hpp"
 

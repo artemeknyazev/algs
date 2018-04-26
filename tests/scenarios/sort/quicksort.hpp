@@ -75,6 +75,7 @@ namespace {
         }
     }
 
+    // TODO: fails very infrequently, check&fix
     TEST(Sort, Quicksort_Partition_DualPivot) {
         using algs::sort::quicksort::partition_dual_pivot;
         using algs::sort::quicksort::is_partitioned_dual_pivot;

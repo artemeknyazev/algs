@@ -1,6 +1,6 @@
 # Algs
 
-A collection of algortithms, their tests and benchmarks. Mostly for studying of algorithms than for using in real projects.
+A collection of algortithms, their tests and (in future) benchmarks. Mostly for studying of algorithms than for using in real projects.
 
 Uses [`googletest`](https://github.com/google/googletest) for testing as a submodule.
 
@@ -13,10 +13,5 @@ Uses [`googletest`](https://github.com/google/googletest) for testing as a submo
 # Testing
 
 ```
-> cd algs && make
+> cd algs && make run
 ```
-This command builds all possible tests. Look at the `TESTS` property in the `tests/Makefile` for all available ones. Output executables are placed into `tests/build` under the same names.
-
-# Benchmarking
-
-Soon...
