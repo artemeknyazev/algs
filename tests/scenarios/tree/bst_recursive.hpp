@@ -3,7 +3,7 @@
 #include "algs/tree/bst_recursive.hpp"
 
 namespace {
-    using bst = algs::tree::bst::bst_recursive<int, int>;
+    using bst = algs::tree::bst::bst_recursive_test<int, int>;
 
     TEST(Tree, BST_Recursive_Empty) {
         bst tree;

@@ -3,8 +3,63 @@
 namespace algs::tree::bst {
 
 // TODO: iterators instead in_order/in_order_reverse methods
-// TODO: select k-th method
 // TODO: find and operator[] return a reference to a key-value pair
+
+template<typename Key, typename Value>
+class Node {
+public:
+    std::pair<Key, Value> mData;
+    Node *mpParent, *mpLeft, *mpRight;
+
+    Node(Key key, Value value, Node *pParent)
+        : mData(std::make_pair(key, value)), mpParent(pParent),
+            mpLeft(nullptr), mpRight(nullptr)
+    {}
+
+    Node *next() {
+        if (mpRight == nullptr) { // find a parent with an unvisited right subtree
+            if (!mpParent)
+                return nullptr;
+            Node *pParent = mpParent;
+            for (Node *pCurrent = this;
+                    pParent && pParent->mpRight == pCurrent;
+                    pCurrent = pParent, pParent = pCurrent->mpParent);
+            return pParent;
+        } else { // find a min key in a right subtree
+            Node *pNext = mpRight;
+            while (pNext->mpLeft)
+                pNext = pNext->mpLeft;
+            return pNext;
+        }
+    }
+
+    Node *prev() {
+        if (mpLeft == nullptr) { // find a parent with an unvisited left subtree
+            if (!mpParent)
+                return nullptr;
+            Node *pParent = mpParent;
+            for (Node *pCurrent = this;
+                    pParent && pParent->mpLeft == pCurrent;
+                    pCurrent = pParent, pParent = pCurrent->mpParent);
+            return pParent;
+        } else { // find a max key in a left subtree
+            Node *pPrev = mpLeft;
+            while (pPrev->mpRight)
+                pPrev = pPrev->mpRight;
+            return pPrev;
+        }
+    }
+
+    size_t size() {
+        return 1 + (mpLeft ? mpLeft->size() : 0) +
+            (mpRight ? mpRight->size() : 0);
+    }
+
+    size_t height() {
+        return 1 + std::max(mpLeft ? mpLeft->height() : 0,
+            mpRight ? mpRight->height() : 0);
+    }
+};
 
 /**
  * Recursive implementation of a binary search tree.
@@ -16,71 +71,14 @@ public:
     typedef Key key_type;
     typedef Value mapped_type;
     typedef std::pair<Key, Value> value_type;
-
-private:
-    class Node {
-    public:
-        std::pair<Key, Value> mData;
-        Node *mpParent, *mpLeft, *mpRight;
-
-        Node(Key key, Value value, Node *pParent)
-            : mData(std::make_pair(key, value)), mpParent(pParent),
-              mpLeft(nullptr), mpRight(nullptr)
-        {}
-
-        Node *next() {
-            if (mpRight == nullptr) { // find a parent with an unvisited right subtree
-                if (!mpParent)
-                    return nullptr;
-                Node *pParent = mpParent;
-                for (Node *pCurrent = this;
-                     pParent && pParent->mpRight == pCurrent;
-                     pCurrent = pParent, pParent = pCurrent->mpParent);
-                return pParent;
-            } else { // find a min key in a right subtree
-                Node *pNext = mpRight;
-                while (pNext->mpLeft)
-                    pNext = pNext->mpLeft;
-                return pNext;
-            }
-        }
-
-        Node *prev() {
-            if (mpLeft == nullptr) { // find a parent with an unvisited left subtree
-                if (!mpParent)
-                    return nullptr;
-                Node *pParent = mpParent;
-                for (Node *pCurrent = this;
-                     pParent && pParent->mpLeft == pCurrent;
-                     pCurrent = pParent, pParent = pCurrent->mpParent);
-                return pParent;
-            } else { // find a max key in a left subtree
-                Node *pPrev = mpLeft;
-                while (pPrev->mpRight)
-                    pPrev = pPrev->mpRight;
-                return pPrev;
-            }
-        }
-
-        size_t size() {
-            return 1 + (mpLeft ? mpLeft->size() : 0) +
-                (mpRight ? mpRight->size() : 0);
-        }
-
-        size_t height() {
-            return 1 + std::max(mpLeft ? mpLeft->height() : 0,
-                mpRight ? mpRight->height() : 0);
-        }
-    };
-
-    Node *mpRoot;
+    typedef Node<Key, Value> node_type;
 
 public:
     bst_recursive()
         : mpRoot(nullptr)
     {}
 
-    ~bst_recursive() {
+    virtual ~bst_recursive() {
         clear();
     }
 
@@ -98,7 +96,7 @@ public:
      * TODO: Should insert a (key, default value) pair if not found?
      **/
     value_type find(const Key& key) {
-        Node *pNode = find(mpRoot, key);
+        node_type *pNode = find(root(), key);
         if (pNode == nullptr)
             return std::make_pair(key, Value());
         return pNode->mData;
@@ -119,7 +117,7 @@ public:
      * Check if a container contains a value for a given key
      **/
     bool contains(const Key& key) {
-        return find(mpRoot, key) != nullptr;
+        return find(root(), key) != nullptr;
     }
 
     /**
@@ -128,7 +126,7 @@ public:
     value_type select(size_t k) {
         if (k >= size())
             throw std::out_of_range("bst_recursive::select");
-        Node *pNode = select(mpRoot, k);
+        node_type *pNode = select(root(), k);
         return pNode->mData;
     }
 
@@ -138,15 +136,15 @@ public:
     void partition(size_t k) {
         if (k >= size())
             throw std::out_of_range("bst_recursive::partition");
-        mpRoot = partition(mpRoot, k);
+        mpRoot = partition(root(), k);
     }
 
     /**
      * Insert a key-value pair to a container
      **/
     value_type insert(Key key, Value value) {
-        Node *pNew = nullptr;
-        mpRoot = insert(mpRoot, nullptr, key, value, &pNew);
+        node_type *pNew = nullptr;
+        mpRoot = insert(root(), nullptr, key, value, &pNew);
         return pNew->mData;
     }
 
@@ -154,43 +152,43 @@ public:
      * Insert a key-value pair to a container into a root node
      **/
     value_type insert_root(Key key, Value value) {
-        mpRoot = insert_root(mpRoot, nullptr, key, value);
-        return mpRoot->mData;
+        mpRoot = insert_root(root(), nullptr, key, value);
+        return root()->mData;
     }
 
     /**
      * Insert a key-value pair to a container a splay-way
      **/
     value_type insert_splay(Key key, Value value) {
-        Node *pNew = nullptr;
-        mpRoot = insert(mpRoot, nullptr, key, value, &pNew);
+        node_type *pNew = nullptr;
+        mpRoot = insert(root(), nullptr, key, value, &pNew);
         splay(pNew);
-        return mpRoot->mData;
+        return root()->mData;
     }
 
     /**
      * Remove a key-value pair from a container
      **/
     void remove(Key key) {
-        mpRoot = remove(mpRoot, key);
+        mpRoot = remove(root(), key);
     }
 
     /**
      * Returns count of elements in a container
      **/
     size_t size() {
-        return size(mpRoot);
+        return root() ? root()->size() : 0;
     }
 
     /**
      * Returns tree height
      **/
     size_t height() {
-        return height(mpRoot);
+        return root() ? height(root()) : 0;
     }
 
 protected:
-    void clear(Node *pNode) {
+    void clear(node_type *pNode) {
         if (pNode == nullptr)
             return;
         clear(pNode->mpLeft);
@@ -198,7 +196,7 @@ protected:
         delete pNode;
     }
 
-    Node *find(Node *pNode, const Key& key) {
+    node_type *find(node_type *pNode, const Key& key) {
         if (pNode == nullptr)
             return pNode;
         else if (key < pNode->mData.first)
@@ -208,7 +206,7 @@ protected:
         return pNode;
     }
 
-    Node *find_min(Node *pNode) {
+    node_type *find_min(node_type *pNode) {
         if (pNode == nullptr)
             return pNode;
         else if (pNode->mpLeft == nullptr)
@@ -217,7 +215,7 @@ protected:
             return find_min(pNode->mpLeft);
     }
 
-    Node *find_max(Node *pNode) {
+    node_type *find_max(node_type *pNode) {
         if (pNode == nullptr)
             return pNode;
         else if (pNode->mpRight == nullptr)
@@ -226,7 +224,7 @@ protected:
             return find_max(pNode->mpRight);
     }
 
-    Node *select(Node *pNode, size_t k) {
+    node_type *select(node_type *pNode, size_t k) {
         if (pNode == nullptr)
             return nullptr;
         size_t sz = pNode->mpLeft ? pNode->mpLeft->size() : 0;
@@ -238,7 +236,7 @@ protected:
             return pNode;
     }
 
-    Node *partition(Node *pNode, size_t k) {
+    node_type *partition(node_type *pNode, size_t k) {
         if (pNode == nullptr)
             return nullptr;
         size_t sz = pNode->mpLeft ? pNode->mpLeft->size() : 0;
@@ -252,13 +250,13 @@ protected:
         return pNode;
     }
 
-    void splay(Node *x) {
+    void splay(node_type *x) {
         while (x) {
-            Node *y = x->mpParent;
+            node_type *y = x->mpParent;
             if (y == nullptr) // x is a root node, do nothing
                 break;
 
-            Node *z = y->mpParent;
+            node_type *z = y->mpParent;
             if (z == nullptr) { // y is a root node, rotate x to root
                 if (y->mpLeft == x)
                     mpRoot = rotate_right(mpRoot);
@@ -268,8 +266,8 @@ protected:
             }
 
             // y is not root, two rotations required
-            Node *n; // new x-y-z hierachy's root
-            Node *g = z->mpParent; // g is z's parent
+            node_type *n; // new x-y-z hierachy's root
+            node_type *g = z->mpParent; // g is z's parent
 
             if (z->mpLeft == y) {
                 if (y->mpLeft == x) {
@@ -304,9 +302,9 @@ protected:
         }
     }
 
-    Node *insert(Node *pNode, Node *pParent, Key key, Value value, Node **ppNew) {
+    node_type *insert(node_type *pNode, node_type *pParent, Key key, Value value, node_type **ppNew) {
         if (pNode == nullptr)
-            return *ppNew = new Node(key, value, pParent);
+            return *ppNew = new node_type(key, value, pParent);
         else if (key < pNode->mData.first)
             pNode->mpLeft = insert(pNode->mpLeft, pNode, key, value, ppNew);
         else if (pNode->mData.first < key)
@@ -318,9 +316,9 @@ protected:
         return pNode;
     }
 
-    Node *insert_root(Node *pNode, Node *pParent, Key key, Value value) {
+    node_type *insert_root(node_type *pNode, node_type *pParent, Key key, Value value) {
         if (pNode == nullptr) {
-            pNode = new Node(key, value, pParent);
+            pNode = new node_type(key, value, pParent);
         } else if (key < pNode->mData.first) {
             pNode->mpLeft = insert_root(pNode->mpLeft, pNode, key, value);
             pNode = rotate_right(pNode);
@@ -337,7 +335,7 @@ protected:
      * Hibbard deletion: find minimal node in a right subtree
      * and replace with a removed one
      **/
-    Node *remove(Node *pNode, Key key) {
+    node_type *remove(node_type *pNode, Key key) {
         if (pNode == nullptr)
             return pNode;
         else if (key < pNode->mData.first) {
@@ -347,7 +345,7 @@ protected:
             pNode->mpRight = remove(pNode->mpRight, key);
             return pNode;
         } else {
-            Node *pNewNode = nullptr;
+            node_type *pNewNode = nullptr;
             if (pNode->mpRight == nullptr) {
                 pNewNode = pNode->mpLeft;
             } else if (pNode->mpLeft == nullptr) {
@@ -371,8 +369,8 @@ protected:
         }
     }
 
-    Node *rotate_left(Node *pNode) {
-        Node *pNewNode = pNode->mpRight;
+    node_type *rotate_left(node_type *pNode) {
+        node_type *pNewNode = pNode->mpRight;
         pNewNode->mpParent = pNode->mpParent;
         pNode->mpRight = pNewNode->mpLeft;
         if (pNode->mpRight)
@@ -383,8 +381,8 @@ protected:
         return pNewNode;
     }
 
-    Node *rotate_right(Node *pNode) {
-        Node *pNewNode = pNode->mpLeft;
+    node_type *rotate_right(node_type *pNode) {
+        node_type *pNewNode = pNode->mpLeft;
         pNewNode->mpParent = pNode->mpParent;
         pNode->mpLeft = pNewNode->mpRight;
         if (pNode->mpLeft)
@@ -395,27 +393,26 @@ protected:
         return pNewNode;
     }
 
-    size_t size(Node *pNode) {
-        if (pNode == nullptr)
-            return 0;
-        else
-            return 1 + size(pNode->mpLeft) + size(pNode->mpRight);
+protected:
+    node_type *root() {
+        return mpRoot;
     }
 
-    size_t height(Node *pNode) {
-        if (pNode == nullptr)
-            return 0;
-        else
-            return 1 + std::max(height(pNode->mpLeft), height(pNode->mpRight));
-    }
+private:
+    node_type *mpRoot;
+};
 
-    // ADDITIONAL METHODS
+template<typename Key, typename Value>
+class bst_recursive_debug : public bst_recursive<Key, Value> {
 public:
+    using value_type = typename bst_recursive<Key, Value>::value_type;
+    using node_type = typename bst_recursive<Key, Value>::node_type;
+
     /**
      * In order traversal (min to max)
      **/
     void in_order(std::vector<value_type>& out) {
-        for (Node *pCurr = find_min(mpRoot); pCurr != nullptr; pCurr = pCurr->next())
+        for (auto *pCurr = this->find_min(this->root()); pCurr != nullptr; pCurr = pCurr->next())
             out.push_back(pCurr->mData);
     }
 
@@ -423,7 +420,7 @@ public:
      * In order reverse traversal (max to min)
      **/
     void in_order_reverse(std::vector<value_type>& out) {
-        for (Node *pCurr = find_max(mpRoot); pCurr != nullptr; pCurr = pCurr->prev())
+        for (auto *pCurr = this->find_max(this->root()); pCurr != nullptr; pCurr = pCurr->prev())
             out.push_back(pCurr->mData);
     }
 
@@ -431,33 +428,11 @@ public:
      * Print tree contents
      **/
     void print(std::ostream& out) {
-        print(out, mpRoot, 0);
+        print(out, this->root(), 0);
     }
 
-    bool check_links_valid() {
-        if (mpRoot == nullptr)
-            return true;
-        if (mpRoot->mpParent)
-            return false;
-        return check_links_valid(mpRoot);
-    }
-
-    bool check_is_bst() {
-        if (mpRoot == nullptr)
-            return true;
-        Node *pMin = find_min(mpRoot->mpLeft);
-        Node *pMax = find_max(mpRoot->mpRight);
-        pMin = pMin ? pMin : mpRoot;
-        pMax = pMax ? pMax : mpRoot;
-        return check_is_bst(mpRoot, pMin->mData.first, pMax->mData.first);
-    }
-
-    bool check_is_partitioned(size_t k) {
-        return select(mpRoot, k) == mpRoot;
-    }
-
-protected:
-    void print(std::ostream& out, Node *pNode, int depth) {
+private:
+    void print(std::ostream& out, node_type *pNode, int depth) {
         if (pNode)
             print(out, pNode->mpRight, depth+1);
         print_node(out, pNode, depth);
@@ -465,7 +440,7 @@ protected:
             print(out, pNode->mpLeft, depth+1);
     }
 
-    void print_node(std::ostream& out, Node *pNode, int depth) {
+    void print_node(std::ostream& out, node_type *pNode, int depth) {
         for (int i = 0; i < depth; ++i)
             out << "    ";
         if (pNode)
@@ -473,8 +448,41 @@ protected:
         else
             out << '*' << std::endl;
     }
+}; // bst_recursive_debug
 
-    bool check_links_valid(Node *pNode) {
+template<typename Key, typename Value>
+class bst_recursive_test : public bst_recursive_debug<Key, Value> {
+public:
+    using value_type = typename bst_recursive_debug<Key, Value>::value_type;
+    using node_type = typename bst_recursive_debug<Key, Value>::node_type;
+
+    bool check_links_valid() {
+        auto *pRoot = this->root();
+        if (pRoot == nullptr)
+            return true;
+        if (pRoot->mpParent)
+            return false;
+        return check_links_valid(pRoot);
+    }
+
+    bool check_is_bst() {
+        auto *pRoot = this->root();
+        if (pRoot == nullptr)
+            return true;
+        auto *pMin = this->find_min(pRoot->mpLeft);
+        auto *pMax = this->find_max(pRoot->mpRight);
+        pMin = pMin ? pMin : pRoot;
+        pMax = pMax ? pMax : pRoot;
+        return check_is_bst(pRoot, pMin->mData.first, pMax->mData.first);
+    }
+
+    bool check_is_partitioned(size_t k) {
+        auto *pRoot = this->root();
+        return this->select(pRoot, k) == pRoot;
+    }
+
+private:
+    bool check_links_valid(node_type *pNode) {
         if (pNode == nullptr)
             return true;
         if (pNode->mpLeft)
@@ -486,7 +494,7 @@ protected:
         return true;
     }
 
-    bool check_is_bst(Node *pNode, const Key& min, const Key& max) {
+    bool check_is_bst(node_type *pNode, const Key& min, const Key& max) {
         if (pNode == nullptr)
             return true;
         if (pNode->mData.first < min || max < pNode->mData.first)
@@ -494,7 +502,7 @@ protected:
         return check_is_bst(pNode->mpLeft, min, pNode->mData.first) ||
             check_is_bst(pNode->mpRight, pNode->mData.first, max);
     }
-};
+}; // bst_recursive_test
 
 } // namespace algs::tree::bst
 
