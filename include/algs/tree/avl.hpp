@@ -1,10 +1,67 @@
 #include <stdexcept>
 
-namespace algs::tree::bst {
+namespace algs::tree::avl {
 
 // TODO: removal&rebalancing after removal
 // TODO: iterators instead in_order/in_order_reverse methods
 // TODO: find and operator[] return a reference to a key-value pair
+
+template<typename Key, typename Value>
+class Node {
+public:
+    std::pair<Key, Value> mData;
+    Node *mpParent, *mpLeft, *mpRight;
+    char mBalance; // -1 for left-heavy, +1 for right-heavy
+
+    Node(Key key, Value value, Node *pParent)
+        : mData(std::make_pair(key, value)), mpParent(pParent),
+            mpLeft(nullptr), mpRight(nullptr), mBalance(0)
+    {}
+
+    Node *next() {
+        if (mpRight == nullptr) { // find a parent with an unvisited right subtree
+            if (!mpParent)
+                return nullptr;
+            Node *pParent = mpParent;
+            for (Node *pCurrent = this;
+                    pParent && pParent->mpRight == pCurrent;
+                    pCurrent = pParent, pParent = pCurrent->mpParent);
+            return pParent;
+        } else { // find a min key in a right subtree
+            Node *pNext = mpRight;
+            while (pNext->mpLeft)
+                pNext = pNext->mpLeft;
+            return pNext;
+        }
+    }
+
+    Node *prev() {
+        if (mpLeft == nullptr) { // find a parent with an unvisited left subtree
+            if (!mpParent)
+                return nullptr;
+            Node *pParent = mpParent;
+            for (Node *pCurrent = this;
+                    pParent && pParent->mpLeft == pCurrent;
+                    pCurrent = pParent, pParent = pCurrent->mpParent);
+            return pParent;
+        } else { // find a max key in a left subtree
+            Node *pPrev = mpLeft;
+            while (pPrev->mpRight)
+                pPrev = pPrev->mpRight;
+            return pPrev;
+        }
+    }
+
+    size_t size() {
+        return 1 + (mpLeft ? mpLeft->size() : 0) +
+            (mpRight ? mpRight->size() : 0);
+    }
+
+    size_t height() {
+        return 1 + std::max(mpLeft ? mpLeft->height() : 0,
+            mpRight ? mpRight->height() : 0);
+    }
+};
 
 /**
  * Recursive implementation of an AVL tree.
@@ -16,72 +73,14 @@ public:
     typedef Key key_type;
     typedef Value mapped_type;
     typedef std::pair<Key, Value> value_type;
-
-private:
-    class Node {
-    public:
-        std::pair<Key, Value> mData;
-        Node *mpParent, *mpLeft, *mpRight;
-        char mBalance; // -1 for left-heavy, +1 for right-heavy
-
-        Node(Key key, Value value, Node *pParent)
-            : mData(std::make_pair(key, value)), mpParent(pParent),
-              mpLeft(nullptr), mpRight(nullptr), mBalance(0)
-        {}
-
-        Node *next() {
-            if (mpRight == nullptr) { // find a parent with an unvisited right subtree
-                if (!mpParent)
-                    return nullptr;
-                Node *pParent = mpParent;
-                for (Node *pCurrent = this;
-                     pParent && pParent->mpRight == pCurrent;
-                     pCurrent = pParent, pParent = pCurrent->mpParent);
-                return pParent;
-            } else { // find a min key in a right subtree
-                Node *pNext = mpRight;
-                while (pNext->mpLeft)
-                    pNext = pNext->mpLeft;
-                return pNext;
-            }
-        }
-
-        Node *prev() {
-            if (mpLeft == nullptr) { // find a parent with an unvisited left subtree
-                if (!mpParent)
-                    return nullptr;
-                Node *pParent = mpParent;
-                for (Node *pCurrent = this;
-                     pParent && pParent->mpLeft == pCurrent;
-                     pCurrent = pParent, pParent = pCurrent->mpParent);
-                return pParent;
-            } else { // find a max key in a left subtree
-                Node *pPrev = mpLeft;
-                while (pPrev->mpRight)
-                    pPrev = pPrev->mpRight;
-                return pPrev;
-            }
-        }
-
-        size_t size() {
-            return 1 + (mpLeft ? mpLeft->size() : 0) +
-                (mpRight ? mpRight->size() : 0);
-        }
-
-        size_t height() {
-            return 1 + std::max(mpLeft ? mpLeft->height() : 0,
-                mpRight ? mpRight->height() : 0);
-        }
-    };
-
-    Node *mpRoot;
+    typedef Node<Key, Value> node_type;
 
 public:
     avl()
         : mpRoot(nullptr)
     {}
 
-    ~avl() {
+    virtual ~avl() {
         clear();
     }
 
@@ -99,7 +98,7 @@ public:
      * TODO: Should insert a (key, default value) pair if not found?
      **/
     value_type find(const Key& key) {
-        Node *pNode = find(mpRoot, key);
+        node_type *pNode = find(root(), key);
         if (pNode == nullptr)
             return std::make_pair(key, Value());
         return pNode->mData;
@@ -120,14 +119,14 @@ public:
      * Check if a container contains a value for a given key
      **/
     bool contains(const Key& key) {
-        return find(mpRoot, key) != nullptr;
+        return find(root(), key) != nullptr;
     }
 
     /**
      * Find k-th minimal element in a collection
      **/
     value_type select(size_t k) {
-        Node *pNode = select(mpRoot, k);
+        node_type *pNode = select(root(), k);
         if (pNode == nullptr)
             throw std::out_of_range("avl::select");
         return pNode->mData;
@@ -137,8 +136,8 @@ public:
      * Insert a key-value pair to a container
      **/
     void insert(Key key, Value value) {
-        Node *pNew = nullptr;
-        mpRoot = insert(mpRoot, nullptr, key, value, &pNew);
+        node_type *pNew = nullptr;
+        mpRoot = insert(root(), nullptr, key, value, &pNew);
         balance(pNew);
     }
 
@@ -146,25 +145,25 @@ public:
      * Remove a key-value pair from a container
      **/
     void remove(Key key) {
-        mpRoot = remove(mpRoot, key);
+        mpRoot = remove(root(), key);
     }
 
     /**
      * Returns count of elements in a container
      **/
     size_t size() {
-        return size(mpRoot);
+        return root() ? root()->size() : 0;
     }
 
     /**
      * Returns tree height
      **/
     size_t height() {
-        return height(mpRoot);
+        return root() ? root()->height() : 0;
     }
 
 protected:
-    void clear(Node *pNode) {
+    void clear(node_type *pNode) {
         if (pNode == nullptr)
             return;
         clear(pNode->mpLeft);
@@ -172,7 +171,7 @@ protected:
         delete pNode;
     }
 
-    Node *find(Node *pNode, const Key& key) {
+    node_type *find(node_type *pNode, const Key& key) {
         if (pNode == nullptr)
             return pNode;
         else if (key < pNode->mData.first)
@@ -182,7 +181,7 @@ protected:
         return pNode;
     }
 
-    Node *find_min(Node *pNode) {
+    node_type *find_min(node_type *pNode) {
         if (pNode == nullptr)
             return pNode;
         else if (pNode->mpLeft == nullptr)
@@ -191,7 +190,7 @@ protected:
             return find_min(pNode->mpLeft);
     }
 
-    Node *find_max(Node *pNode) {
+    node_type *find_max(node_type *pNode) {
         if (pNode == nullptr)
             return pNode;
         else if (pNode->mpRight == nullptr)
@@ -200,7 +199,7 @@ protected:
             return find_max(pNode->mpRight);
     }
 
-    Node *select(Node *pNode, size_t k) {
+    node_type *select(node_type *pNode, size_t k) {
         if (pNode == nullptr)
             return nullptr;
         size_t sz = pNode->mpLeft ? pNode->mpLeft->size() : 0;
@@ -212,9 +211,9 @@ protected:
             return pNode;
     }
 
-    Node *insert(Node *pNode, Node *pParent, Key key, Value value, Node **ppNew) {
+    node_type *insert(node_type *pNode, node_type *pParent, Key key, Value value, node_type **ppNew) {
         if (pNode == nullptr)
-            return *ppNew = new Node(key, value, pParent);
+            return *ppNew = new node_type(key, value, pParent);
         else if (key < pNode->mData.first)
             pNode->mpLeft = insert(pNode->mpLeft, pNode, key, value, ppNew);
         else if (pNode->mData.first < key)
@@ -228,15 +227,15 @@ protected:
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
-    Node *remove(Node *pNode, Key key) {
+    node_type *remove(node_type *pNode, Key key) {
         // TODO: fix this
         throw std::logic_error("not implemented");
     }
 #pragma clang diagnostic pop
 
-    Node *rotate_left(Node *x) {
-        Node *z = x->mpRight;
-        Node *t23 = z->mpLeft;
+    node_type *rotate_left(node_type *x) {
+        node_type *z = x->mpRight;
+        node_type *t23 = z->mpLeft;
 
         z->mpParent = x->mpParent;
         x->mpRight = t23;
@@ -256,9 +255,9 @@ protected:
         return z;
     }
 
-    Node *rotate_right(Node *x) {
-        Node *z = x->mpLeft;
-        Node *t23 = z->mpRight;
+    node_type *rotate_right(node_type *x) {
+        node_type *z = x->mpLeft;
+        node_type *t23 = z->mpRight;
 
         z->mpParent = x->mpParent;
         x->mpLeft = t23;
@@ -278,11 +277,11 @@ protected:
         return z;
     }
 
-    Node *rotate_left_right(Node *x) {
-        Node *z = x->mpLeft;
-        Node *y = z->mpRight;
-        Node *t2 = y->mpLeft;
-        Node *t3 = y->mpRight;
+    node_type *rotate_left_right(node_type *x) {
+        node_type *z = x->mpLeft;
+        node_type *y = z->mpRight;
+        node_type *t2 = y->mpLeft;
+        node_type *t3 = y->mpRight;
 
         y->mpParent = x->mpParent;
 
@@ -313,11 +312,11 @@ protected:
         return y;
     }
 
-    Node *rotate_right_left(Node *x) {
-        Node *z = x->mpRight;
-        Node *y = z->mpLeft;
-        Node *t2 = y->mpLeft;
-        Node *t3 = y->mpRight;
+    node_type *rotate_right_left(node_type *x) {
+        node_type *z = x->mpRight;
+        node_type *y = z->mpLeft;
+        node_type *t2 = y->mpLeft;
+        node_type *t3 = y->mpRight;
 
         y->mpParent = x->mpParent;
 
@@ -348,11 +347,11 @@ protected:
         return y;
     }
 
-    void balance(Node *z) {
+    void balance(node_type *z) {
         if (z == nullptr)
             return;
-        for (Node *x = z->mpParent; x != nullptr; x = z->mpParent) {
-            Node *n, *g;
+        for (node_type *x = z->mpParent; x != nullptr; x = z->mpParent) {
+            node_type *n, *g;
             if (z == x->mpRight){
                 if (x->mBalance > 0) {
                     g = x->mpParent;
@@ -401,27 +400,26 @@ protected:
         }
     }
 
-    size_t size(Node *pNode) {
-        if (pNode == nullptr)
-            return 0;
-        else
-            return 1 + size(pNode->mpLeft) + size(pNode->mpRight);
+protected:
+    node_type *root() {
+        return mpRoot;
     }
 
-    size_t height(Node *pNode) {
-        if (pNode == nullptr)
-            return 0;
-        else
-            return 1 + std::max(height(pNode->mpLeft), height(pNode->mpRight));
-    }
+private:
+    node_type *mpRoot;
+};
 
-    // ADDITIONAL METHODS
+template<typename Key, typename Value>
+class avl_debug : public avl<Key, Value> {
 public:
+    using node_type = typename avl<Key, Value>::node_type;
+    using value_type = typename avl<Key, Value>::value_type;
+
     /**
      * In order traversal (min to max)
      **/
     void in_order(std::vector<value_type>& out) {
-        for (Node *pCurr = find_min(mpRoot); pCurr != nullptr; pCurr = pCurr->next())
+        for (node_type *pCurr = this->find_min(this->root()); pCurr != nullptr; pCurr = pCurr->next())
             out.push_back(pCurr->mData);
     }
 
@@ -429,7 +427,7 @@ public:
      * In order reverse traversal (max to min)
      **/
     void in_order_reverse(std::vector<value_type>& out) {
-        for (Node *pCurr = find_max(mpRoot); pCurr != nullptr; pCurr = pCurr->prev())
+        for (node_type *pCurr = this->find_max(this->root()); pCurr != nullptr; pCurr = pCurr->prev())
             out.push_back(pCurr->mData);
     }
 
@@ -437,33 +435,11 @@ public:
      * Print tree contents
      **/
     void print(std::ostream& out) {
-        print(out, mpRoot, 0);
+        print(out, this->root(), 0);
     }
 
-    bool check_links_valid() {
-        if (mpRoot == nullptr)
-            return true;
-        if (mpRoot->mpParent)
-            return false;
-        return check_links_valid(mpRoot);
-    }
-
-    bool check_is_bst() {
-        if (mpRoot == nullptr)
-            return true;
-        Node *pMin = find_min(mpRoot->mpLeft);
-        Node *pMax = find_max(mpRoot->mpRight);
-        pMin = pMin ? pMin : mpRoot;
-        pMax = pMax ? pMax : mpRoot;
-        return check_is_bst(mpRoot, pMin->mData.first, pMax->mData.first);
-    }
-
-    bool check_is_avl() {
-        return check_is_avl(mpRoot);
-    }
-
-protected:
-    void print(std::ostream& out, Node *pNode, int depth) {
+private:
+    void print(std::ostream& out, node_type *pNode, int depth) {
         if (pNode)
             print(out, pNode->mpRight, depth+1);
         print_node(out, pNode, depth);
@@ -471,7 +447,7 @@ protected:
             print(out, pNode->mpLeft, depth+1);
     }
 
-    void print_node(std::ostream& out, Node *pNode, int depth) {
+    void print_node(std::ostream& out, node_type *pNode, int depth) {
         for (int i = 0; i < depth; ++i)
             out << "    ";
         if (pNode) {
@@ -485,8 +461,40 @@ protected:
         else
             out << '*' << std::endl;
     }
+};
 
-    bool check_links_valid(Node *pNode) {
+template<typename Key, typename Value>
+class avl_test : public avl_debug<Key, Value> {
+public:
+    using node_type = typename avl_debug<Key, Value>::node_type;
+    using value_type = typename avl_debug<Key, Value>::value_type;
+
+    bool check_links_valid() {
+        auto pRoot = this->root();
+        if (pRoot == nullptr)
+            return true;
+        if (pRoot->mpParent)
+            return false;
+        return check_links_valid(pRoot);
+    }
+
+    bool check_is_bst() {
+        auto pRoot = this->root();
+        if (pRoot == nullptr)
+            return true;
+        node_type *pMin = this->find_min(pRoot->mpLeft);
+        node_type *pMax = this->find_max(pRoot->mpRight);
+        pMin = pMin ? pMin : pRoot;
+        pMax = pMax ? pMax : pRoot;
+        return check_is_bst(pRoot, pMin->mData.first, pMax->mData.first);
+    }
+
+    bool check_is_avl() {
+        return check_is_avl(this->root());
+    }
+
+private:
+    bool check_links_valid(node_type *pNode) {
         if (pNode == nullptr)
             return true;
         if (pNode->mpLeft && pNode->mpLeft->mpParent != pNode) {
@@ -498,7 +506,7 @@ protected:
         return check_links_valid(pNode->mpLeft) && check_links_valid(pNode->mpRight);
     }
 
-    bool check_is_bst(Node *pNode, const Key& min, const Key& max) {
+    bool check_is_bst(node_type *pNode, const Key& min, const Key& max) {
         if (pNode == nullptr)
             return true;
         if (pNode->mData.first < min || max < pNode->mData.first)
@@ -507,7 +515,7 @@ protected:
             check_is_bst(pNode->mpRight, pNode->mData.first, max);
     }
 
-    bool check_is_avl(Node *pNode) {
+    bool check_is_avl(node_type *pNode) {
         if (pNode == nullptr)
             return true;
         size_t hl = pNode->mpLeft ? pNode->mpLeft->height() : 0;

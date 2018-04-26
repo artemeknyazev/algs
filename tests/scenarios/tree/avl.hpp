@@ -3,7 +3,7 @@
 #include "algs/tree/avl.hpp"
 
 namespace {
-    using avl = algs::tree::bst::avl<int, int>;
+    using avl = algs::tree::avl::avl_test<int, int>;
 
     TEST(Tree, AVL_Empty) {
         avl tree;
