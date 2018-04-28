@@ -14,7 +14,7 @@ namespace {
         ASSERT_TRUE(tree.check_is_rb());
     }
 
-    TEST(Tree, RB_Recursive_Simple) {
+    TEST(Tree, RB_Insert_Simple) {
         rb tree;
         tree.insert(1, 2);
         ASSERT_EQ(tree.size(), 1);
@@ -26,6 +26,7 @@ namespace {
         ASSERT_TRUE(tree.check_links_valid());
         ASSERT_TRUE(tree.check_is_bst());
         ASSERT_TRUE(tree.check_is_rb());
+        ASSERT_TRUE(tree.check_is_black_height_valid());
         tree.insert(2, 4);
         ASSERT_EQ(tree.size(), 2);
         ASSERT_FALSE(tree.contains(0));
@@ -37,6 +38,7 @@ namespace {
         ASSERT_TRUE(tree.check_links_valid());
         ASSERT_TRUE(tree.check_is_bst());
         ASSERT_TRUE(tree.check_is_rb());
+        ASSERT_TRUE(tree.check_is_black_height_valid());
         tree.insert(3, 8);
         ASSERT_EQ(tree.size(), 3);
         ASSERT_FALSE(tree.contains(0));
@@ -49,6 +51,7 @@ namespace {
         ASSERT_TRUE(tree.check_links_valid());
         ASSERT_TRUE(tree.check_is_bst());
         ASSERT_TRUE(tree.check_is_rb());
+        ASSERT_TRUE(tree.check_is_black_height_valid());
         tree.insert(0, 1);
         ASSERT_TRUE(tree.contains(0));
         ASSERT_EQ(tree.find(0), std::make_pair(0, 1));
@@ -59,11 +62,13 @@ namespace {
         ASSERT_TRUE(tree.contains(3));
         ASSERT_EQ(tree.find(3), std::make_pair(3, 8));
         ASSERT_TRUE(tree.check_links_valid());
+        ASSERT_TRUE(tree.check_is_bst());
         ASSERT_TRUE(tree.check_is_rb());
+        ASSERT_TRUE(tree.check_is_black_height_valid());
     }
 
-    TEST(Tree, RB_Recursive_Insert_Randomized) {
-        for (size_t size = 16; size <= 1 << 10; size <<= 1) {
+    TEST(Tree, RB_Insert_Randomized) {
+        for (size_t size = 8; size <= 1 << 10; size <<= 1) {
             for (int i = 0; i < int(std::max(1., std::log(size))); ++i) {
                 std::vector<int> base(size);
                 std::generate(base.begin(), base.end(), [n = 0] () mutable { return n++; });
@@ -80,6 +85,7 @@ namespace {
                     ASSERT_TRUE(tree.check_links_valid());
                     ASSERT_TRUE(tree.check_is_bst());
                     ASSERT_TRUE(tree.check_is_rb());
+                    ASSERT_TRUE(tree.check_is_black_height_valid());
                 }
             }
         }

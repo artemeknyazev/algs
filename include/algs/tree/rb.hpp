@@ -61,6 +61,11 @@ public:
         return 1 + std::max(mpLeft ? mpLeft->height() : 0,
             mpRight ? mpRight->height() : 0);
     }
+
+    size_t black_height() {
+        return (mRed ? 0 : 1) + std::max((mpLeft ? mpLeft->black_height() : 1),
+            (mpRight ? mpRight->black_height() : 1));
+    }
 };
 
 /**
@@ -138,7 +143,7 @@ public:
     void insert(Key key, Value value) {
         node_type *pNew = nullptr;
         mpRoot = insert(root(), nullptr, key, value, &pNew);
-        balance(pNew);
+        balance_insert(pNew);
     }
 
     virtual void print(std::ostream& out) = 0;
@@ -227,13 +232,9 @@ protected:
         return pNode;
     }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
     node_type *remove(node_type *pNode, Key key) {
-        // TODO: fix this
-        throw std::logic_error("not implemented");
+        return nullptr;
     }
-#pragma clang diagnostic pop
 
     node_type *rotate_left(node_type *x) {
         node_type *z = x->mpRight;
@@ -309,40 +310,47 @@ protected:
         return y;
     }
 
-    void balance(node_type *z) {
-        while (z) {
-            if (!z->mRed) // no need to rebalance black nodes
+    void balance_insert(node_type *z) {
+        while (z) { // z is always a red node
+            node_type *y = z->mpParent;
+            if (y == nullptr) // z is a root node
                 break;
-            auto y = z->mpParent;
-            if (y == nullptr) // z is a root
+            if (!y->mRed) // tree upwards is balanced
                 break;
-            if (y->mpLeft && y->mpLeft->mRed && y->mpRight && y->mpRight->mRed) {
-                // propagate red to parent and continue with a parent node
-                y->mpLeft->mRed = y->mpRight->mRed = false;
-                y->mRed = true;
-                z = y;
-                continue;
+            node_type *x = y->mpParent;
+            if (x == nullptr) { // y is a root node
+                if (y->mpLeft == z)
+                    mpRoot = rotate_right(y);
+                else
+                    mpRoot = rotate_left(y);
+                break;
             }
-            if (!y->mRed) // no need to rebalance a black parent with a red child
-                break;
-            auto x = y->mpParent;
-            if (x == nullptr) // y is a root
-                break;
-            auto g = x->mpParent;
+            node_type *g = x->mpParent;
             node_type *n;
             if (x->mpLeft == y) {
-                if (y->mpLeft == z)
+                if (x->mpRight && x->mpRight->mRed) {
+                    x->mpLeft->mRed = x->mpRight->mRed = false;
+                    x->mRed = true;
+                    z = x;
+                    continue;
+                } else if (y->mpLeft == z)
                     n = rotate_right(x);
                 else
                     n = rotate_left_right(x);
             } else {
-                if (y->mpLeft == z)
+                if (x->mpLeft && x->mpLeft->mRed) {
+                    x->mpLeft->mRed = x->mpRight->mRed = false;
+                    x->mRed = true;
+                    z = x;
+                    continue;
+                } else if (y->mpLeft == z)
                     n = rotate_right_left(x);
                 else
                     n = rotate_left(x);
             }
             n->mpLeft->mRed = n->mpRight->mRed = false;
             n->mRed = true;
+            n->mpParent = g;
             if (g == nullptr) {
                 mpRoot = n;
                 break;
@@ -352,10 +360,10 @@ protected:
                 else
                     g->mpRight = n;
                 z = n;
-                continue;
             }
         }
-        mpRoot->mRed = false;
+        if (mpRoot)
+            mpRoot->mRed = false;
     }
 
 protected:
@@ -409,7 +417,9 @@ private:
         for (int i = 0; i < depth; ++i)
             out << "    ";
         if (pNode)
-            out << pNode->mData.first << " (" << (pNode->mRed ? "r" : "b")
+            out << pNode->mData.first << " ("
+                << (pNode->mRed ? "r" : "b")
+                << ", " << pNode->black_height()
                 << ")" << std::endl;
         else
             out << '*' << std::endl;
@@ -446,6 +456,10 @@ public:
         return check_is_rb(this->root());
     }
 
+    bool check_is_black_height_valid() {
+        return check_is_black_height_valid(this->root());
+    }
+
 private:
     bool check_links_valid(node_type *pNode) {
         if (pNode == nullptr)
@@ -477,6 +491,15 @@ private:
                 return false;
         }
         return check_is_rb(pNode->mpLeft) && check_is_rb(pNode->mpRight);
+    }
+
+    bool check_is_black_height_valid(node_type *pNode) {
+        if (pNode == nullptr)
+            return true;
+        size_t hl = pNode->mpLeft ? pNode->mpLeft->black_height() : 1;
+        size_t hr = pNode->mpRight ? pNode->mpRight->black_height() : 1;
+        return hl == hr && check_is_black_height_valid(pNode->mpLeft) &&
+            check_is_black_height_valid(pNode->mpRight);
     }
 };
 
