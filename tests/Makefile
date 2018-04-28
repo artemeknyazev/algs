@@ -22,12 +22,7 @@ BUILD_DIR = build
 
 # --- GOOGLE TEST AREA START; DO NOT TOUCH ---
 
-GTEST_DIR = ../submodules/googletest/googletest
-
-GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
-                $(GTEST_DIR)/include/gtest/internal/*.h
-
-CPPFLAGS += -isystem $(GTEST_DIR)/include
+CPPFLAGS += -isystem ../submodules/googletest/googletest/include
 
 # note: 2>&1 - pipe stderr to stdout, >/dev/null - pipe stdout to /dev/null, use 2>&1 >/dev/null
 $(BUILD_DIR)/gtest.a :
@@ -60,13 +55,16 @@ $(BUILD_DIR)/sort_quicksort.o : $(SCENARIOS_DIR)/sort/common.hpp \
 	$(SCENARIOS_DIR)/sort/quicksort.cpp \
 	$(LIB_DIR)/sort/quicksort.hpp
 
-OBJ_FILES_TREE := $(addprefix tree_,bst_recursive.o avl.o)
+OBJ_FILES_TREE := $(addprefix tree_,bst_recursive.o avl.o rb.o)
 $(BUILD_DIR)/tree_bst_recursive.o : $(SCENARIOS_DIR)/tree/common.hpp \
 	$(SCENARIOS_DIR)/tree/bst_recursive.cpp \
 	$(LIB_DIR)/tree/bst_recursive.hpp
 $(BUILD_DIR)/tree_avl.o : $(SCENARIOS_DIR)/tree/common.hpp \
 	$(SCENARIOS_DIR)/tree/avl.cpp \
 	$(LIB_DIR)/tree/avl.hpp
+$(BUILD_DIR)/tree_rb.o : $(SCENARIOS_DIR)/tree/common.hpp \
+	$(SCENARIOS_DIR)/tree/rb.cpp \
+	$(LIB_DIR)/tree/rb.hpp
 
 OBJ_FILES := $(addprefix $(BUILD_DIR)/,$(OBJ_FILES_SORT) $(OBJ_FILES_TREE))
 $(BUILD_DIR) :
